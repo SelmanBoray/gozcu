@@ -1,0 +1,26 @@
+# ── Model ve embedding ──
+torch
+transformers
+timm
+einops
+onnxruntime
+
+# ── Vektör veritabanı ──
+qdrant-client
+
+# ── Video ve görüntü işleme ──
+av
+opencv-python
+pillow
+imagehash
+numpy
+
+# ── Türkçe sorgu ayrıştırma ──
+dateparser
+
+# ── Arayüz ──
+typer
+streamlit
+
+# ── Yapılandırma ──
+pydantic-settings
