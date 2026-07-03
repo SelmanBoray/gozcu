@@ -1,0 +1,96 @@
+
+=== SORGU: "park halindeki arabaların arasında yürüyen kişi" ===
+  görsel metin: "park halindeki arabaların arasında yürüyen kişi"
+  1. 0.322  video_1         offset=   3.0s  150.jpg
+  2. 0.320  video_2         offset=   2.0s  100.jpg
+  3. 0.320  video_1         offset=   3.5s  175.jpg
+  4. 0.318  video_2         offset=   3.5s  175.jpg
+  5. 0.316  video_1         offset=   2.0s  100.jpg
+
+=== SORGU: "arabasına binen adam" ===
+  görsel metin: "arabasına binen adam"
+  1. 0.311  video_1         offset=   3.0s  150.jpg
+  2. 0.305  video_2         offset=   3.0s  150.jpg
+  3. 0.300  video_2         offset=   2.5s  125.jpg
+  4. 0.300  video_2         offset=   2.0s  100.jpg
+  5. 0.299  video_1         offset=   2.5s  125.jpg
+
+=== SORGU: "otoparktan çıkan beyaz araç" ===
+  görsel metin: "otoparktan çıkan beyaz araç"
+  1. 0.309  video_1         offset=   1.0s  50.jpg
+  2. 0.303  video_3         offset=   4.0s  200.jpg
+  3. 0.303  video_3         offset=   3.0s  150.jpg
+  4. 0.302  video_2         offset=   2.5s  125.jpg
+  5. 0.302  video_3         offset=   3.5s  175.jpg
+
+=== SORGU: "kaldırımda yürüyen sırt çantalı kişi" ===
+  görsel metin: "kaldırımda yürüyen sırt çantalı kişi"
+  1. 0.220  ucf_gece        offset= 101.5s  3045.jpg
+  2. 0.216  ucf_gece        offset= 131.5s  3945.jpg
+  3. 0.211  ucf_gece        offset= 100.5s  3015.jpg
+  4. 0.207  ucf_gece        offset= 127.0s  3810.jpg
+  5. 0.200  ucf_trafik      offset=  42.0s  1260.jpg
+
+=== SORGU: "birlikte yürüyen iki kişi" ===
+  görsel metin: "birlikte yürüyen iki kişi"
+  1. 0.207  ucf_gece        offset= 101.5s  3045.jpg
+  2. 0.194  ucf_gece        offset=  97.5s  2925.jpg
+  3. 0.192  ucf_gece        offset=  66.0s  1980.jpg
+  4. 0.192  ucf_gece        offset= 100.5s  3015.jpg
+  5. 0.191  ucf_gece        offset= 131.5s  3945.jpg
+
+=== SORGU: "uzakta tek başına yürüyen insan" ===
+  görsel metin: "uzakta tek başına yürüyen insan"
+  1. 0.228  ucf_gece        offset= 131.5s  3945.jpg
+  2. 0.216  ucf_gece        offset= 101.5s  3045.jpg
+  3. 0.212  ucf_gece        offset= 127.0s  3810.jpg
+  4. 0.211  ucf_gece        offset=  80.5s  2415.jpg
+  5. 0.209  ucf_gece        offset=  76.5s  2295.jpg
+
+=== SORGU: "caddede giden mavi kamyonet" ===
+  görsel metin: "caddede giden mavi kamyonet"
+  1. 0.306  ucf_trafik      offset=   8.5s  255.jpg
+  2. 0.297  ucf_trafik      offset=   9.0s  270.jpg
+  3. 0.297  ucf_trafik      offset=   7.5s  225.jpg
+  4. 0.291  ucf_trafik      offset=   8.0s  240.jpg
+  5. 0.289  ucf_trafik      offset=   7.0s  210.jpg
+
+=== SORGU: "yolda ilerleyen beyaz otobüs" ===
+  görsel metin: "yolda ilerleyen beyaz otobüs"
+  1. 0.331  ucf_trafik      offset=  44.0s  1320.jpg
+  2. 0.331  ucf_trafik      offset=  81.0s  2430.jpg
+  3. 0.329  ucf_trafik      offset=  43.5s  1305.jpg
+  4. 0.328  ucf_trafik      offset=  43.0s  1290.jpg
+  5. 0.328  ucf_trafik      offset=  81.5s  2445.jpg
+
+=== SORGU: "trafikte bekleyen kırmızı arabalar" ===
+  görsel metin: "trafikte bekleyen kırmızı arabalar"
+  1. 0.338  ucf_trafik      offset= 101.0s  3030.jpg
+  2. 0.338  ucf_trafik      offset= 103.0s  3090.jpg
+  3. 0.337  ucf_trafik      offset=  90.0s  2700.jpg
+  4. 0.337  ucf_trafik      offset= 134.5s  4035.jpg
+  5. 0.336  ucf_trafik      offset= 102.0s  3060.jpg
+
+=== SORGU: "gece karanlıkta binaya giren kişi" ===
+  görsel metin: "gece karanlıkta binaya giren kişi"
+  1. 0.370  ucf_gece        offset=  76.5s  2295.jpg
+  2. 0.369  ucf_gece        offset=  85.5s  2565.jpg
+  3. 0.368  ucf_gece        offset=  81.5s  2445.jpg
+  4. 0.367  ucf_gece        offset=  71.5s  2145.jpg
+  5. 0.367  ucf_gece        offset=  97.5s  2925.jpg
+
+=== SORGU: "dün akşam 8'den sonra otoparka giren araçlar" ===
+  görsel metin: "8'den sonra otoparka giren araçlar"
+  zaman filtresi: "dün akşam" → 02.07.2026 17:00 — 02.07.2026 23:00
+  UYARI: zaman aralığında sonuç yok — filtresiz tekrar arandı
+  1. 0.396  video_3         offset=   3.5s  175.jpg
+  2. 0.393  video_1         offset=   1.0s  50.jpg
+  3. 0.391  video_3         offset=   4.0s  200.jpg
+  4. 0.391  video_2         offset=   2.0s  100.jpg
+  5. 0.390  video_1         offset=   1.5s  75.jpg
+Exception ignored in: <function QdrantClient.__del__ at 0x0000015193D31300>
+Traceback (most recent call last):
+  File "C:\Users\Selman\PycharmProjects\gozcu\.venv\Lib\site-packages\qdrant_client\qdrant_client.py", line 169, in __del__
+  File "C:\Users\Selman\PycharmProjects\gozcu\.venv\Lib\site-packages\qdrant_client\qdrant_client.py", line 178, in close
+  File "C:\Users\Selman\PycharmProjects\gozcu\.venv\Lib\site-packages\qdrant_client\local\qdrant_local.py", line 85, in close
+ImportError: sys.meta_path is None, Python is likely shutting down

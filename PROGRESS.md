@@ -1,5 +1,22 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 3 Temmuz 2026 (akşam) — Gerçek CCTV testi: örnekleyici yeniden tasarlandı, Risk 1 kesinleşti
+
+- AI Engineer link-doğrulamalı gerçek CCTV verisi seçti: VIRAT otopark + kampüs
+  (araştırma lisanslı), UCF trafik + gece. `data/cctv_test/` altına indirildi.
+- **Kritik hata bulundu:** VIRAT kampüs 22 sn'den 1 kare verdi. Teşhis: pHash dedup
+  global hash olduğu için 3 piksellik insana yapısal kör (Hamming=0); hareket kapısı
+  eşikleri de küçük özne için 3-7 kat yüksekti.
+- **Örnekleyici yeniden tasarlandı** (AI Engineer inceleme + onay): ortalama-normalize
+  absdiff, bağlı bileşen gürültü filtresi, birikimli değişim dedup (pHash emekli),
+  küresel olay koruması, OSD maskesi, saatlik oran sınırı. Detay: ARCHITECTURE.md §2.
+- Sonuç: kampüs 1→31, otopark 3→59 kare. Yürüyen insanlı kareler artık indekste.
+- 11 Türkçe sorgu testi + görsel doğrulama: "mavi kamyonet" birebir isabet; gece ve
+  trafik sorguları doğru; ama küçük özne sorgularında **Risk 1 kesinleşti** — video içi
+  sıralama doğru, videolar arası 0.02–0.07 puanlık sulanma yakın plan videoya yeniriyor.
+- **Karar: Faz 1.5 (YOLO-crop embedding) öne çekildi — sıradaki iş.**
+- Detaylar: `experiments/2026-07-03_gercek_cctv_testi/deney_notu.md`
+
 ## 3 Temmuz 2026 — Faz 1 MVP kodu tamamlandı
 
 - Ortam kuruldu: `.venv` + CUDA torch (torch 2.12.1+cu126, `cuda: True` — RTX 4070 Laptop).

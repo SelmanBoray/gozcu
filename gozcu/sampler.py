@@ -1,10 +1,13 @@
 """Video → örneklenmiş kare akışı.
 
-2 fps aday kare + hareket kapısı + çapa karesi + pHash dedup.
+2 fps aday kare + hareket kapısı + birikimli değişim dedup + çapa karesi.
+pHash dedup KALDIRILDI: global hash, uzaktaki küçük özneye yapısal olarak kör
+(VIRAT kampüs testinde 44 kareyi 1'e indiriyordu — Hamming=0). Yerine son
+TUTULAN kareye göre birikimli değişim: yürüyen kişi fark biriktirir, gürültü
+biriktirmez. Teşhis: experiments/2026-07-03_gercek_cctv_testi/
 Algoritma detayı: ARCHITECTURE.md §2
 """
 
-from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
@@ -29,7 +32,7 @@ class FrameRecord:
     offset_s: float      # videonun başından itibaren saniye (seek için)
     frame_idx: int
     motion_score: float  # değişen piksel oranı (0.0–1.0)
-    phash: str           # 64-bit perceptual hash (hex)
+    phash: str           # 64-bit perceptual hash (yalnız metadata/hata ayıklama)
     image: np.ndarray    # BGR kare (embedder ve thumbs için)
 
 
@@ -51,14 +54,40 @@ def video_start_ts(video_path: Path) -> float:
     return video_path.stat().st_mtime - get_video_duration(video_path)
 
 
+# ── Değişim maskesi yardımcıları ──
+
+def _normalize(gray: np.ndarray) -> np.ndarray:
+    """Ortalama-normalizasyon: AGC/pozlama kayması tüm kareyi 'değişti' saymasın."""
+    g = gray.astype(np.float32)
+    return g - g.mean()
+
+
+def _change_mask(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """İki normalize kare arasındaki ham değişim maskesi (bool)."""
+    return np.abs(a - b) > settings.motion_pixel_thresh
+
+
+def _blob_filter(mask: np.ndarray) -> np.ndarray:
+    """Gürültü filtresi: küçük bağlı bileşenleri at (yağmur/gren blob değildir)."""
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(mask.astype(np.uint8), connectivity=8)
+    keep = np.zeros_like(mask)
+    for i in range(1, n):
+        if stats[i, cv2.CC_STAT_AREA] >= settings.min_blob_px:
+            keep[labels == i] = True
+    return keep
+
+
 def sample_video(video_path: Path, camera_id: str, base_ts: float) -> Iterator[FrameRecord]:
     """Videoyu çözüp indekslemeye değer kareleri üretir."""
     # ── Durum değişkenleri ──
     step = 1.0 / settings.sample_fps
     next_sample_t = 0.0
-    prev_small: np.ndarray | None = None
+    prev_norm: np.ndarray | None = None    # önceki aday (hareket skoru için)
+    ref_norm: np.ndarray | None = None     # son tutulan kare (dedup referansı)
+    change_freq: np.ndarray | None = None  # EMA: sürekli değişen pikseller (OSD saati vb.)
     last_keep_t = float("-inf")
-    recent_hashes: deque = deque(maxlen=settings.phash_window)
+    hour_window = -1
+    kept_in_hour = 0
     video_id = video_path.stem
 
     with av.open(str(video_path)) as container:
@@ -74,29 +103,61 @@ def sample_video(video_path: Path, camera_id: str, base_ts: float) -> Iterator[F
 
             image = frame.to_ndarray(format="bgr24")
 
-            # ── 2. Hareket kapısı: 320×180 gri + blur + absdiff ──
+            # ── 2. Küçültme + blur + ortalama-normalizasyon ──
             small = cv2.resize(image, (settings.motion_width, settings.motion_height))
             small = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
             small = cv2.GaussianBlur(small, (5, 5), 0)
+            norm = _normalize(small)
 
-            if prev_small is None:
+            # ── 3. OSD maskesi: son adaylarda sürekli değişen pikseller (yanık saat vb.) ──
+            if prev_norm is not None:
+                raw_change = _change_mask(norm, prev_norm)
+                if change_freq is None:
+                    change_freq = raw_change.astype(np.float32)
+                else:
+                    change_freq = 0.95 * change_freq + 0.05 * raw_change
+            osd_mask = change_freq > settings.osd_freq_thresh if change_freq is not None else None
+
+            # ── 4. Hareket kapısı: önceki adaya göre blob-filtreli değişim oranı ──
+            if prev_norm is None:
                 motion_score = 1.0  # ilk kare her zaman aday
             else:
-                diff = cv2.absdiff(small, prev_small)
-                motion_score = float((diff > settings.motion_pixel_thresh).mean())
-            prev_small = small
+                mask = raw_change.copy()
+                if osd_mask is not None:
+                    mask &= ~osd_mask
+                motion_score = float(_blob_filter(mask).mean())
+            prev_norm = norm
 
-            # ── 3. Çapa karesi: hareketsiz de olsa 60 sn'de bir tut ──
             is_anchor = (t - last_keep_t) >= settings.anchor_interval_s
             if motion_score <= settings.motion_keep_ratio and not is_anchor:
                 continue
 
-            # ── 4. pHash dedup (çapa kareleri dedup'ı atlar — kapsama garantisi) ──
-            phash = imagehash.phash(Image.fromarray(small))
-            if not is_anchor and any(phash - h <= settings.phash_hamming_max for h in recent_hashes):
+            # ── 5. Küresel olay koruması: ışık/AGC sıçraması → tek kare tut, referansı sıfırla ──
+            is_global_event = False
+            if ref_norm is not None:
+                ref_change = _change_mask(norm, ref_norm)
+                if float(ref_change.mean()) > settings.global_change_ratio:
+                    is_global_event = True
+
+                # ── 6. Birikimli değişim dedup: son tutulan kareden yeterince farklı mı? ──
+                elif not is_anchor:
+                    if osd_mask is not None:
+                        ref_change &= ~osd_mask
+                    if float(_blob_filter(ref_change).mean()) <= settings.dedup_change_ratio:
+                        continue
+
+            # ── 7. Oran sınırı: kamera başına saatte en çok N kare (çapalar muaf) ──
+            window = int(t // 3600)
+            if window != hour_window:
+                hour_window, kept_in_hour = window, 0
+            if kept_in_hour >= settings.max_keep_per_hour and not (is_anchor or is_global_event):
                 continue
-            recent_hashes.append(phash)
+            kept_in_hour += 1
+
+            # ── 8. Kareyi tut ──
+            ref_norm = norm
             last_keep_t = t
+            phash = imagehash.phash(Image.fromarray(small))
 
             yield FrameRecord(
                 video_id=video_id,

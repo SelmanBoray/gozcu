@@ -12,11 +12,31 @@
 
 ## 2. Kare örnekleme stratejisi
 
+> **3 Temmuz 2026 revizyonu:** İlk tasarımdaki pHash dedup, gerçek CCTV testinde
+> (VIRAT kampüs) uzaktaki küçük özneye yapısal olarak kör çıktı — global 64-bit hash,
+> 3 piksellik insan hareketinde Hamming=0 verip 44 kareyi 1'e indirdi. Mekanizma
+> değiştirildi. Teşhis: `experiments/2026-07-03_gercek_cctv_testi/`
+
 1. PyAV ile çözümle, **2 fps** aday kare (0.5 sn'de bir).
-2. **Hareket kapısı:** 320×180 gri + 5×5 Gaussian blur + önceki adayla absdiff. Piksel "değişti" eşiği **> 25**; `motion_score` = değişen piksel oranı; **> 0.005** ise tut.
-3. Hareket olmasa da **60 sn'de bir çapa karesi** zorla tut (sahne kapsaması, gece stabilitesi).
-4. **Dedup:** 64-bit pHash; son **10** tutulan kareyle Hamming mesafesi **≤ 6** ise at.
-5. Tutulanları toplu embedle (GPU batch 16 / CPU batch 4); **480 px JPEG (q=80)** küçük resim yaz.
+2. **Küçültme + normalizasyon:** 320×180 gri + 5×5 Gaussian blur + **ortalama-normalizasyon**
+   (AGC pompalaması/bulut geçişi tüm kareyi "değişti" saymasın).
+3. **OSD maskesi:** son adaylarda >%50 sıklıkla değişen pikseller (yanık DVR saati vb.)
+   tüm sayımlardan dışlanır.
+4. **Hareket kapısı:** önceki adayla normalize absdiff **> 10**; değişim maskesine
+   **bağlı bileşen filtresi** (≥ 5 px — yağmur/gren blob değildir, insan blobdur);
+   kalan oran **> 0.0005** ise aday tutulur.
+5. **Birikimli değişim dedup (pHash yerine):** son TUTULAN kareye göre aynı maskeli
+   değişim oranı **> 0.001** olmalı. Gerekçe: yürüyen uzak insan kareler boyunca fark
+   biriktirir ve eşiği aşar; sıfır-ortalamalı gürültü birikmez. pHash yalnız metadata.
+6. **Küresel olay koruması:** referansa göre ham değişim > %25 ise (ışık/pozlama
+   sıçraması) tek kare tutulur, referans sıfırlanır — akış tutulmaz.
+7. Hareket olmasa da **60 sn'de bir çapa karesi** zorla tut (sahne kapsaması).
+8. **Oran sınırı:** kamera başına saatte en çok **600** kare (çapalar muaf) — patolojik
+   kamera (yağmur, bozuk sensör) felaketi zarif bozulmaya çevrilir.
+9. Tutulanları toplu embedle (GPU batch 16 / CPU batch 4); **480 px JPEG (q=80)** küçük resim yaz.
+
+**Doğrulama (VIRAT/UCF gerçek CCTV):** otopark 3→59, kampüs 1→31 kare; yürüyen
+insanlı kareler artık indekste.
 
 **İndeks matematiği:** 2 fps = 7.200 aday/saat. Otopark kamerası gerçekçi ortalama **~300–500 tutulan kare/saat/kamera ≈ 8–12k/gün/kamera**. Pilot (1 hafta × 4 kamera) ≈ **250–350k vektör ≈ 1–1.4 GB** (kuantizasyon öncesi) — rahat.
 
@@ -60,5 +80,8 @@ Koleksiyon `frames`: boyut **1024**, mesafe **Cosine**, HNSW **varsayılanları*
 ## 6. En büyük 3 risk
 
 1. **Tam-kare embedding küçük özneleri sulandırır** — kırmızı montlu adam 1080p geniş planda 40 px'dir; recall hayal kırıklığı yaratırsa Faz 2'deki YOLO crop-embedding'i (insan/araç kırpıklarını ayrı vektör olarak indeksle) **Faz 1.5 olarak öne çek**.
+   **→ 3 Temmuz 2026: KESİNLEŞTİ.** Video içi sıralama doğru (sinyal var) ama videolar
+   arası 0.02–0.07 puanlık sulanma boşluğu, küçük özneli kareyi yakın planlı alakasız
+   videoya yeniriyor. **Faz 1.5 öne çekildi — sıradaki iş.**
 2. **Zaman damgası gerçeği** — DVR dosya adları/mtimes yalan söyler; taban zaman yanlışsa her "dün gece" cevabı yanlış. Erken doğrula: görüntüye gömülü OSD saatini OCR ile çapraz kontrol et.
 3. **Eval seti yoksa karar da yok** — 1. haftada test videolarından **30–50 Türkçe sorgu → doğru kare** çifti oluştur; her model/eşik kararı (SigLIP2 yedeğine geçiş dahil) buna karşı ölçülür. Ayrıca: embedding ve küçük resimler de KVKK kapsamında kişisel veridir — saklama/silme politikası ilk günden tasarlanır.

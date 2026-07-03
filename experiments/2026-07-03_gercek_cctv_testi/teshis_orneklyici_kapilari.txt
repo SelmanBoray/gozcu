@@ -1,0 +1,37 @@
+TEŞHİS: Örnekleyici kapıları küçük özneleri eliyor (3 Temmuz 2026)
+====================================================================
+
+Belirti: VIRAT_otopark (31.4s, 943 kare) → 3 kare indekslendi
+         VIRAT_kampus (21.7s, 649 kare)  → 1 kare indekslendi
+Video çözme SAĞLAM (PyAV tüm kareleri okuyor, zaman damgaları normal).
+
+Parametre taraması (tutulan kare sayısı):
+  keep_ratio=0.005   hamming=6:  otopark=  3   kampus=  1   <- mevcut ayarlar
+  keep_ratio=0.001   hamming=6:  otopark=  3   kampus=  1
+  keep_ratio=0.0004  hamming=6:  otopark=  3   kampus=  1
+  keep_ratio=0.0004  hamming=3:  otopark= 13   kampus=  1
+  keep_ratio=0.0002  hamming=2:  otopark= 13   kampus=  1
+
+Kapı-ayrımlı teşhis (aday / hareket_geçti / tutuldu + hareket skoru medyan-maks):
+  VIRAT_otopark:
+    pix=25 keep=0.005  ham=6 blur=+ :  63 / 44 /  3   (med 0.00726, maks 0.02193)
+    pix=10 keep=0.0002 ham=3 blur=+ :  63 / 63 / 13   (med 0.01247, maks 0.02844)
+    pix=5  keep=0.0001 ham=2 blur=+ :  63 / 63 / 13   (med 0.01691, maks 0.03241)
+  VIRAT_kampus:
+    pix=25 keep=0.005  ham=6 blur=+ :  44 /  1 /  1   (med 0.00036, maks 0.00137)
+    pix=10 keep=0.0002 ham=3 blur=+ :  44 / 40 /  1   (med 0.00163, maks 0.00345)
+    pix=10 keep=0.0002 ham=2 blur=- :  44 / 44 /  1   (med 0.00786, maks 0.00905)
+
+SONUÇ:
+1. Hareket kapısı (eski ayar): 288 piksel değişim şartı, uzak yayanın ~94
+   pikselinin 3 katı. pix eşiği 25 + blur, 3 piksellik insanı tamamen siliyor
+   (kampüs maks skor 0.00137 < 0.005).
+2. pHash dedup YAPISAL kör: 320x180 küçültmenin global 64-bit hash'i, sadece
+   minik insan hareket ettiğinde Hamming=0 — hamming<=2'de bile kampüste
+   44 kareden 1 kare kalıyor. Parametreyle çözülemez.
+
+ÖNERİLEN TASARIM DEĞİŞİKLİĞİ (AI Engineer onayı bekleniyor):
+- Hareket kapısı: absdiff>10 (25 yerine), keep_ratio 0.0005 (0.005 yerine)
+- pHash dedup YERİNE birikimli değişim: son TUTULAN kareye göre absdiff;
+  yürüyen kişi fark biriktirir → eşik aşılınca tut. Gürültü birikmez.
+- 60 sn çapa karesi aynen kalır.

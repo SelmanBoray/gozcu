@@ -25,14 +25,19 @@ class Settings(BaseSettings):
     batch_size_cpu: int = 4
 
     # ── Kare örnekleme ──
-    sample_fps: float = 2.0            # aday kare oranı
-    motion_width: int = 320            # hareket kapısı çözünürlüğü
+    # Eşikler 3 Temmuz 2026 VIRAT teşhisiyle yeniden ayarlandı — uzaktaki küçük
+    # özneler (40 px insan) eski değerlerde tamamen eleniyordu. AI Engineer onaylı.
+    sample_fps: float = 2.0             # aday kare oranı
+    motion_width: int = 320             # hareket kapısı çözünürlüğü
     motion_height: int = 180
-    motion_pixel_thresh: int = 25      # absdiff "piksel değişti" eşiği
-    motion_keep_ratio: float = 0.005   # değişen piksel oranı bu eşiği aşarsa kareyi tut
-    anchor_interval_s: float = 60.0    # hareketsiz de olsa çapa karesi aralığı
-    phash_hamming_max: int = 6         # dedup: bu mesafenin altı "aynı kare" sayılır
-    phash_window: int = 10             # dedup: son N tutulan kareyle karşılaştır
+    motion_pixel_thresh: int = 10       # normalize absdiff "piksel değişti" eşiği (eski: 25)
+    motion_keep_ratio: float = 0.0005   # değişen piksel oranı eşiği (eski: 0.005)
+    dedup_change_ratio: float = 0.001   # son tutulan kareye göre birikimli değişim eşiği
+    global_change_ratio: float = 0.25   # üstü "küresel olay" (ışık/AGC) — tek kare tut
+    min_blob_px: int = 5                # bağlı bileşen gürültü filtresi (yağmur/gren)
+    osd_freq_thresh: float = 0.5        # sürekli değişen piksel maskesi (yanık OSD saati)
+    max_keep_per_hour: int = 600        # kamera başına oran sınırı (çapalar muaf)
+    anchor_interval_s: float = 60.0     # hareketsiz de olsa çapa karesi aralığı
 
     # ── Küçük resimler ──
     thumb_width: int = 480

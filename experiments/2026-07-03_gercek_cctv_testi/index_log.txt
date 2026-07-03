@@ -1,0 +1,9 @@
+Cihaz seçiliyor ve model yükleniyor (jinaai/jina-clip-v2)...
+Model hazır (cihaz: cuda). 4 video indekslenecek.
+
+  ucf_gece.mp4: 236 kare indekslendi (20.6 sn, 11.4 kare/sn) — tahmini başlangıç: 03.07.2026 21:26:07
+  ucf_trafik.mp4: 279 kare indekslendi (23.3 sn, 12.0 kare/sn) — tahmini başlangıç: 03.07.2026 21:26:01
+  VIRAT_kampus.mp4: 31 kare indekslendi (3.4 sn, 9.1 kare/sn) — tahmini başlangıç: 03.07.2026 21:33:52
+  VIRAT_otopark.mp4: 59 kare indekslendi (5.6 sn, 10.5 kare/sn) — tahmini başlangıç: 03.07.2026 21:33:30
+
+Bitti: 605 yeni kare, toplam süre 52.9 sn. İndeksteki toplam kare: 647
