@@ -7,12 +7,15 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
+# ── Proje kökü: yollar çalışma dizininden bağımsız olsun ──
+_ROOT = Path(__file__).resolve().parent.parent
+
 
 class Settings(BaseSettings):
     # ── Yollar ──
-    data_dir: Path = Path("data")
-    thumbs_dir: Path = Path("data/thumbnails")
-    qdrant_path: Path = Path("data/qdrant_storage")
+    data_dir: Path = _ROOT / "data"
+    thumbs_dir: Path = _ROOT / "data" / "thumbnails"
+    qdrant_path: Path = _ROOT / "data" / "qdrant_storage"
 
     # ── Embedding modeli ──
     model_id: str = "jinaai/jina-clip-v2"

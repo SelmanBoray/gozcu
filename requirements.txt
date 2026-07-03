@@ -1,6 +1,7 @@
 # ── Model ve embedding ──
 torch
-transformers
+# jina-clip-v2'nin uzak kodu yeni transformers'ta kaldırılan clip_loss'u import ediyor
+transformers<4.50
 timm
 einops
 onnxruntime

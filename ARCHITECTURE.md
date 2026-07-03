@@ -27,8 +27,10 @@ Koleksiyon `frames`: boyut **1024**, mesafe **Cosine**, HNSW **varsayılanları*
 | Payload alanı | Tip | Not |
 |---|---|---|
 | `video_id` | keyword | |
+| `video_path` | keyword | mutlak yol — viewer videoyu buradan açar |
 | `camera_id` | keyword | **indeksli** |
 | `ts` | float (epoch UTC) | **indeksli**, aralık filtresi |
+| `offset_s` | float | videonun başından saniye — viewer `start_time` için |
 | `frame_idx` | int | |
 | `motion_score` | float | |
 | `phash` | keyword | |
