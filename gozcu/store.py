@@ -54,6 +54,7 @@ class FrameStore:
                 id=_point_id(rec.video_id, rec.frame_idx),
                 vector=vec.tolist(),
                 payload={
+                    "source": "frame",
                     "video_id": rec.video_id,
                     "video_path": rec.video_path,
                     "camera_id": rec.camera_id,
@@ -63,11 +64,44 @@ class FrameStore:
                     "motion_score": rec.motion_score,
                     "phash": rec.phash,
                     "thumb_path": thumb,
-                    # Faz 2 rezerve: track_ids, plates, yolo_classes
+                    # Faz 2 rezerve: track_ids, plates
                 },
             )
             for rec, vec, thumb in zip(records, vectors, thumb_paths)
         ]
+        self.client.upsert(COLLECTION, points=points)
+
+    def upsert_crops(
+        self,
+        items: list[tuple[FrameRecord, "object", int]],  # (kare, Detection, kırpık sırası)
+        vectors: np.ndarray,
+        frame_thumbs: list[str],
+        crop_thumbs: list[str],
+    ) -> None:
+        """YOLO kırpık vektörlerini ana kareye işaret edecek şekilde yazar (Faz 1.5)."""
+        points = []
+        for (rec, det, k), vec, fthumb, cthumb in zip(items, vectors, frame_thumbs, crop_thumbs):
+            h, w = rec.image.shape[:2]
+            x1, y1, x2, y2 = det.bbox
+            points.append(models.PointStruct(
+                id=str(uuid.uuid5(uuid.NAMESPACE_URL, f"gozcu:{rec.video_id}:{rec.frame_idx}:crop:{k}")),
+                vector=vec.tolist(),
+                payload={
+                    "source": "crop",
+                    "video_id": rec.video_id,
+                    "video_path": rec.video_path,
+                    "camera_id": rec.camera_id,
+                    "ts": rec.ts,
+                    "offset_s": rec.offset_s,
+                    "frame_idx": rec.frame_idx,
+                    "thumb_path": fthumb,          # ana kare küçük resmi (bağlam)
+                    "crop_thumb": cthumb,          # kırpık küçük resmi (yakınlaştırma)
+                    "yolo_class": det.cls_name,
+                    "yolo_conf": det.conf,
+                    "bbox": [x1 / w, y1 / h, x2 / w, y2 / h],  # normalize — render'da ölçeklenir
+                    "tiny": det.tiny,
+                },
+            ))
         self.client.upsert(COLLECTION, points=points)
 
     def search(

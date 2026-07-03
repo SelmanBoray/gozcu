@@ -66,7 +66,15 @@ if query:
             with cols[i % 4]:
                 when = datetime.fromtimestamp(hit["ts"]).strftime("%d.%m %H:%M:%S")
                 st.image(hit["thumb_path"], use_container_width=True)
-                st.caption(f"**{hit['score']:.3f}** · {hit['video_id']} · {when}")
+                # ── Kırpık isabeti: sınıf etiketi + yakınlaştırma önizlemesi ──
+                if hit.get("source") == "crop":
+                    st.caption(
+                        f"**{hit['score']:.3f}** · 🎯 {hit['yolo_class']} "
+                        f"({hit['yolo_conf']:.2f}) · {hit['video_id']} · {when}"
+                    )
+                    st.image(hit["crop_thumb"], width=90)
+                else:
+                    st.caption(f"**{hit['score']:.3f}** · {hit['video_id']} · {when}")
                 if st.button("▶ Oynat", key=f"play_{i}"):
                     st.session_state["selected"] = hit
                     st.rerun()

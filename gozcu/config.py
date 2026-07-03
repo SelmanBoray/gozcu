@@ -39,12 +39,26 @@ class Settings(BaseSettings):
     max_keep_per_hour: int = 600        # kamera başına oran sınırı (çapalar muaf)
     anchor_interval_s: float = 60.0     # hareketsiz de olsa çapa karesi aralığı
 
+    # ── YOLO kırpık embedding (Faz 1.5) ──
+    yolo_model: str = "yolo11m.pt"
+    yolo_imgsz: int = 1280           # küçük özne için çözünürlük model boyutundan önemli
+    yolo_conf_person: float = 0.15   # düşük eşik: indekste olmayan tespit kurtarılamaz
+    yolo_conf_vehicle: float = 0.25
+    crop_margin: float = 0.20        # bbox çevresi bağlam payı
+    crop_min_h: int = 16             # altı gürültü lekesi — embedlenmez
+    crop_tiny_h: int = 32            # altı 'tiny' etiketi alır (eval ölçümü için)
+    static_iou: float = 0.85         # önceki kareyle IoU üstü = statik nesne, atla
+    max_crops_per_frame: int = 24    # statik bastırma SONRASI, insan öncelikli sınır
+    crop_thumb_px: int = 160
+
     # ── Küçük resimler ──
     thumb_width: int = 480
     thumb_quality: int = 80
 
     # ── Arama ──
     default_top_k: int = 12
+    search_overfetch: int = 4        # kare tekilleştirme öncesi top_k × N getir
+    group_window_s: float = 8.0      # aynı videoda bu pencere içinde tek sonuç
 
 
 settings = Settings()

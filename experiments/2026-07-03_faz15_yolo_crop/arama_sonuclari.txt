@@ -1,0 +1,76 @@
+
+=== SORGU: "park halindeki arabaların arasında yürüyen kişi" ===
+  görsel metin: "park halindeki arabaların arasında yürüyen kişi"
+  1. 0.334  VIRAT_otopark   offset=  19.0s  570.jpg
+  2. 0.329  VIRAT_otopark   offset=  29.0s  870.jpg
+  3. 0.322  video_1         offset=   3.0s  150.jpg
+  4. 0.322  ucf_trafik      offset=  44.0s  1320.jpg
+  5. 0.320  video_2         offset=   2.0s  100.jpg
+
+=== SORGU: "arabasına binen adam" ===
+  görsel metin: "arabasına binen adam"
+  1. 0.358  video_3         offset=   2.0s  100.jpg
+  2. 0.335  video_1         offset=   1.0s  50.jpg
+  3. 0.330  video_2         offset=   1.0s  50.jpg
+
+=== SORGU: "otoparktan çıkan beyaz araç" ===
+  görsel metin: "otoparktan çıkan beyaz araç"
+  1. 0.394  ucf_trafik      offset=   3.5s  105.jpg
+  2. 0.382  ucf_trafik      offset= 128.0s  3840.jpg
+  3. 0.378  ucf_trafik      offset=  72.5s  2175.jpg
+  4. 0.376  VIRAT_otopark   offset=   0.0s  0.jpg
+  5. 0.371  VIRAT_otopark   offset=  23.0s  690.jpg
+
+=== SORGU: "kaldırımda yürüyen sırt çantalı kişi" ===
+  görsel metin: "kaldırımda yürüyen sırt çantalı kişi"
+  1. 0.358  ucf_trafik      offset=  41.0s  1230.jpg
+  2. 0.352  ucf_trafik      offset=  90.5s  2715.jpg
+  3. 0.327  ucf_trafik      offset=  82.5s  2475.jpg
+
+=== SORGU: "birlikte yürüyen iki kişi" ===
+  görsel metin: "birlikte yürüyen iki kişi"
+  1. 0.312  ucf_trafik      offset=  79.0s  2370.jpg
+  2. 0.293  ucf_trafik      offset=  39.0s  1170.jpg
+  3. 0.280  ucf_trafik      offset=  87.0s  2610.jpg
+  4. 0.270  ucf_gece        offset=  11.5s  345.jpg
+
+=== SORGU: "uzakta tek başına yürüyen insan" ===
+  görsel metin: "uzakta tek başına yürüyen insan"
+  1. 0.295  ucf_trafik      offset=  85.5s  2565.jpg
+  2. 0.291  ucf_trafik      offset=  41.0s  1230.jpg
+
+=== SORGU: "caddede giden mavi kamyonet" ===
+  görsel metin: "caddede giden mavi kamyonet"
+  1. 0.416  ucf_trafik      offset=   5.5s  165.jpg
+  2. 0.353  ucf_trafik      offset=  21.5s  645.jpg
+
+=== SORGU: "yolda ilerleyen beyaz otobüs" ===
+  görsel metin: "yolda ilerleyen beyaz otobüs"
+  1. 0.368  ucf_trafik      offset=  24.0s  720.jpg
+  2. 0.353  ucf_trafik      offset=  42.0s  1260.jpg
+  3. 0.351  ucf_trafik      offset=  85.5s  2565.jpg
+  4. 0.348  ucf_trafik      offset= 133.5s  4005.jpg
+  5. 0.346  ucf_trafik      offset=   9.0s  270.jpg
+
+=== SORGU: "trafikte bekleyen kırmızı arabalar" ===
+  görsel metin: "trafikte bekleyen kırmızı arabalar"
+  1. 0.428  ucf_trafik      offset=  12.0s  360.jpg
+  2. 0.425  ucf_trafik      offset=  86.0s  2580.jpg
+  3. 0.419  ucf_trafik      offset=  26.0s  780.jpg
+  4. 0.415  ucf_trafik      offset=   3.0s  90.jpg
+
+=== SORGU: "gece karanlıkta binaya giren kişi" ===
+  görsel metin: "gece karanlıkta binaya giren kişi"
+  1. 0.389  video_3         offset=   1.5s  75.jpg
+  2. 0.370  ucf_gece        offset=  76.5s  2295.jpg
+  3. 0.369  ucf_gece        offset=  85.5s  2565.jpg
+  4. 0.367  ucf_gece        offset=  97.5s  2925.jpg
+  5. 0.359  video_2         offset=   5.5s  275.jpg
+
+=== SORGU: "dün akşam 8'den sonra otoparka giren araçlar" ===
+  görsel metin: "8'den sonra otoparka giren araçlar"
+  zaman filtresi: "dün akşam" → 02.07.2026 17:00 — 02.07.2026 23:00
+  UYARI: zaman aralığında sonuç yok — filtresiz tekrar arandı
+  1. 0.399  video_3         offset=   3.0s  150.jpg
+  2. 0.396  video_2         offset=   3.5s  175.jpg
+  3. 0.393  video_1         offset=   1.0s  50.jpg

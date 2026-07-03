@@ -2,6 +2,12 @@
 torch
 # jina-clip-v2'nin uzak kodu yeni transformers'ta kaldırılan clip_loss'u import ediyor
 transformers<4.50
+# Faz 1.5: YOLO insan/araç tespiti (kırpık embedding)
+# DİKKAT: torchvision, torch ile AYNI CUDA indeksinden kurulmalı, yoksa
+# CPU-only wheel gelir ve YOLO NMS'i GPU'da çalışmaz:
+#   pip install torchvision --index-url https://download.pytorch.org/whl/cu126
+ultralytics
+torchvision
 timm
 einops
 onnxruntime

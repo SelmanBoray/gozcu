@@ -1,0 +1,31 @@
+
+=== 'park halindeki arabaların arasında yürüyen kişi' ===
+  0.349  VIRAT_otopark    22.5s  KIRPIK insan (0.65)
+         C:\Users\Selman\PycharmProjects\gozcu\data\thumbnails\VIRAT_otopark\crops\675_1.jpg
+
+=== 'otoparkta yürüyen insan' ===
+  0.403  VIRAT_otopark    23.5s  KIRPIK insan (0.77)
+         C:\Users\Selman\PycharmProjects\gozcu\data\thumbnails\VIRAT_otopark\crops\705_0.jpg
+  0.373  video_1           3.5s  kare
+  0.367  VIRAT_otopark    13.0s  KIRPIK insan (0.50)
+         C:\Users\Selman\PycharmProjects\gozcu\data\thumbnails\VIRAT_otopark\crops\390_1.jpg
+
+=== 'uzakta tek başına yürüyen insan' ===
+  0.363  VIRAT_otopark     6.0s  KIRPIK insan (0.65)
+         C:\Users\Selman\PycharmProjects\gozcu\data\thumbnails\VIRAT_otopark\crops\180_0.jpg
+  0.358  VIRAT_otopark    15.5s  KIRPIK insan (0.73)
+         C:\Users\Selman\PycharmProjects\gozcu\data\thumbnails\VIRAT_otopark\crops\465_0.jpg
+  0.358  VIRAT_otopark    31.0s  KIRPIK insan (0.52)
+         C:\Users\Selman\PycharmProjects\gozcu\data\thumbnails\VIRAT_otopark\crops\930_0.jpg
+
+=== 'otoparktan çıkan beyaz araç' ===
+  0.394  ucf_trafik        3.5s  KIRPIK araba (0.72)
+         C:\Users\Selman\PycharmProjects\gozcu\data\thumbnails\ucf_trafik\crops\105_5.jpg
+  0.382  VIRAT_otopark     7.0s  KIRPIK araba (0.49)
+         C:\Users\Selman\PycharmProjects\gozcu\data\thumbnails\VIRAT_otopark\crops\210_3.jpg
+  0.382  VIRAT_otopark    28.0s  KIRPIK araba (0.77)
+         C:\Users\Selman\PycharmProjects\gozcu\data\thumbnails\VIRAT_otopark\crops\840_4.jpg
+
+=== 'caddede giden mavi kamyonet' ===
+  0.416  ucf_trafik        5.5s  KIRPIK kamyon (0.74)
+         C:\Users\Selman\PycharmProjects\gozcu\data\thumbnails\ucf_trafik\crops\165_3.jpg

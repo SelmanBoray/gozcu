@@ -39,9 +39,36 @@ class SearchOutcome:
     time_filter_dropped: bool    # zaman filtresi sıfır sonuç verdi, filtresiz tekrarlandı
 
 
+def _dedup_and_group(hits: list[dict], top_k: int) -> list[dict]:
+    """Kırpık + kare aynı kareyi gösterebilir; aynı yürüyüş art arda kareler doldurabilir.
+
+    1. (video, kare) başına en yüksek skorlu tek sonuç.
+    2. Aynı videoda `group_window_s` penceresi içinde tek sonuç (en iyisi).
+    """
+    best: dict = {}
+    for h in hits:  # Qdrant skora göre sıralı döner
+        key = (h["video_id"], h["frame_idx"])
+        if key not in best:
+            best[key] = h
+
+    kept: list[dict] = []
+    for h in sorted(best.values(), key=lambda x: -x["score"]):
+        if any(
+            k["video_id"] == h["video_id"]
+            and abs(k["offset_s"] - h["offset_s"]) < settings.group_window_s
+            for k in kept
+        ):
+            continue
+        kept.append(h)
+        if len(kept) >= top_k:
+            break
+    return kept
+
+
 def search(raw_query: str, top_k: int | None = None) -> SearchOutcome:
     """Türkçe sorgu → sıralı eşleşme listesi."""
     top_k = top_k or settings.default_top_k
+    fetch_k = top_k * settings.search_overfetch  # tekilleştirme payı
 
     # ── 1. Ayrıştır: görsel metin + zaman filtresi ──
     parsed = parse_query(raw_query)
@@ -52,7 +79,7 @@ def search(raw_query: str, top_k: int | None = None) -> SearchOutcome:
 
     # ── 3. Filtreli vektör araması ──
     results = get_store().search(
-        vector, top_k=top_k,
+        vector, top_k=fetch_k,
         ts_from=parsed.ts_from, ts_to=parsed.ts_to,
         camera_id=parsed.camera_id,
     )
@@ -60,7 +87,10 @@ def search(raw_query: str, top_k: int | None = None) -> SearchOutcome:
     # ── 4. Zaman filtresi hiçbir şey bulamadıysa filtresiz tekrar dene ──
     time_filter_dropped = False
     if not results and parsed.ts_from is not None:
-        results = get_store().search(vector, top_k=top_k, camera_id=parsed.camera_id)
+        results = get_store().search(vector, top_k=fetch_k, camera_id=parsed.camera_id)
         time_filter_dropped = True
+
+    # ── 5. Kare tekilleştirme + zaman kümeleme ──
+    results = _dedup_and_group(results, top_k)
 
     return SearchOutcome(results=results, parsed=parsed, time_filter_dropped=time_filter_dropped)

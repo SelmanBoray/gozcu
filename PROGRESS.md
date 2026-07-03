@@ -1,5 +1,23 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 3 Temmuz 2026 (gece) — Faz 1.5 tamamlandı: YOLO kırpık embedding sulanmayı çözdü
+
+- AI Engineer tasarım danışması → yolo11m@1280, düşük güven eşiği, %20 pay + kare
+  kırpma, statik IoU bastırma, tek koleksiyon `source: frame|crop`.
+- `detector.py` yazıldı; store/search/cli/viewer kırpık desteği aldı; arama tarafına
+  kare tekilleştirme + 8 sn zaman kümeleme eklendi.
+- 2 hata bulunup çözüldü: (1) CPU-only torchvision → cu126'dan yeniden kuruldu;
+  (2) kırpık sınırı güven sıralamasıyla insanları kesiyordu (VIRAT'ta 0 insan kırpığı)
+  → sınır statik bastırma sonrası + insan öncelikli yapıldı → 132 insan kırpığı.
+- **Önce/sonra:** "uzakta tek başına yürüyen insan" Faz 1'de yanlış videoya kayıptı
+  (0.228 vs 0.155); şimdi ilk 3 sonucun 3'ü de doğru insan kırpığı (0.363) — kırpık
+  küçük resimleriyle görsel doğrulandı. İndeks: 647 kare + 3.323 kırpık.
+- Dürüst sınır: VIRAT kampüs segmentinde insan kırpığı yok — ham YOLO bile bulamıyor
+  (<10 px); boru hattı değil veri sınırı. Gerekirse SAHI döşeme (Faz 2 eval kararı).
+- Detay: `experiments/2026-07-03_faz15_yolo_crop/deney_notu.md`
+
+**Sıradaki adım:** Eval seti (30–50 Türkçe sorgu → doğru kare) — korpus ve hat hazır.
+
 ## 3 Temmuz 2026 (akşam) — Gerçek CCTV testi: örnekleyici yeniden tasarlandı, Risk 1 kesinleşti
 
 - AI Engineer link-doğrulamalı gerçek CCTV verisi seçti: VIRAT otopark + kampüs

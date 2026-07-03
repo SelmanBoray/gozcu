@@ -1,0 +1,9 @@
+Cihaz seçiliyor, modeller yükleniyor (jinaai/jina-clip-v2 + yolo11m.pt)...
+Modeller hazır (cihaz: cuda). 4 video indekslenecek.
+
+  ucf_gece.mp4: 236 kare + 34 kırpık indekslendi (31.2 sn) — tahmini başlangıç: 03.07.2026 21:26:07
+  ucf_trafik.mp4: 279 kare + 3000 kırpık indekslendi (254.1 sn) — tahmini başlangıç: 03.07.2026 21:26:01
+  VIRAT_kampus.mp4: 31 kare + 40 kırpık indekslendi (7.4 sn) — tahmini başlangıç: 03.07.2026 21:33:52
+  VIRAT_otopark.mp4: 59 kare + 249 kırpık indekslendi (25.9 sn) — tahmini başlangıç: 03.07.2026 21:33:30
+
+Bitti: 605 kare + 3323 kırpık, toplam süre 318.6 sn. İndeksteki toplam vektör: 4080

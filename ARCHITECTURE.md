@@ -68,20 +68,40 @@ Koleksiyon `frames`: boyut **1024**, mesafe **Cosine**, HNSW **varsayılanları*
 | Modül | Sorumluluk |
 |---|---|
 | `config.py` | pydantic-settings: yollar, model id'leri, tüm eşikler |
-| `sampler.py` | video çözme + 2fps örnekleme + hareket kapısı + pHash dedup → FrameRecord akışı |
+| `sampler.py` | video çözme + 2fps örnekleme + hareket kapısı + birikimli değişim dedup → FrameRecord akışı |
+| `detector.py` | **Faz 1.5:** yolo11m insan/araç tespiti, statik bastırma, insan öncelikli sınır, kırpma |
 | `embedder.py` | jina-clip-v2 sarmalayıcı, toplu görüntü/metin encode, cuda/cpu otomatik |
-| `thumbs.py` | küçük resim yazıcı |
-| `store.py` | Qdrant şema kurulumu, upsert, filtreli arama |
+| `thumbs.py` | kare + kırpık küçük resim yazıcı |
+| `store.py` | Qdrant şema kurulumu, kare + kırpık upsert, filtreli arama |
 | `query.py` | Türkçe zamansal ayrıştırıcı → (görsel_metin, filtreler) |
-| `search.py` | sorgu embed + Qdrant çağrısı + sonuç birleştirme (video, ts, skor, thumb) |
+| `search.py` | sorgu embed + Qdrant çağrısı + kare tekilleştirme + zaman kümeleme |
 | `viewer.py` | Streamlit: sorgu kutusu → küçük resim ızgarası → tıkla, videoyu o saniyeden aç |
-| `cli.py` | typer: `gozcu index <klasör>`, `gozcu search "<sorgu>"` |
+| `cli.py` | typer: `gozcu index <klasör>`, `gozcu search "<sorgu>"`, `stats`, `ui` |
+
+## 5b. Faz 1.5 — YOLO kırpık embedding (3 Temmuz 2026'da uygulandı)
+
+Risk 1 ölçülüp kesinleşince öne çekildi. Tutulan her karede yolo11m (imgsz=1280 —
+küçük özne için çözünürlük model boyutundan önemli) insan/araç tespit eder; kırpıklar
+(%20 bağlam payı + kareye tamamlama, orijinal çözünürlükten) aynı jina-clip-v2 ile
+embedlenip AYNI koleksiyona `source:"crop"` olarak yazılır — ana kareye işaret eder.
+
+- Güven eşiği düşük (insan 0.15 / araç 0.25), `yolo_conf` payload'da: arama anında
+  yükseltilebilir; indekste olmayan tespit kurtarılamaz.
+- **Statik bastırma:** önceki tutulan kareyle aynı-sınıf IoU > 0.85 → atla. Park
+  halindeki araç yalnız ilk görünümünde vektör alır.
+- **İnsan öncelikli sınır (kare başına 24):** salt güven sıralaması park halindeki
+  araçların insanları kesmesine yol açıyordu — insan CCTV aramada en nadir/kıymetli sınıf.
+- Skor ofseti yok: nesne sorguları kırpığı, sahne sorguları kareyi doğal seçiyor.
+- Doğrulama: "uzakta tek başına yürüyen insan" → ilk 3 sonuç da doğru insan kırpığı
+  (önce: yakın planlı yanlış videoya kayıptı). `experiments/2026-07-03_faz15_yolo_crop/`
 
 ## 6. En büyük 3 risk
 
 1. **Tam-kare embedding küçük özneleri sulandırır** — kırmızı montlu adam 1080p geniş planda 40 px'dir; recall hayal kırıklığı yaratırsa Faz 2'deki YOLO crop-embedding'i (insan/araç kırpıklarını ayrı vektör olarak indeksle) **Faz 1.5 olarak öne çek**.
-   **→ 3 Temmuz 2026: KESİNLEŞTİ.** Video içi sıralama doğru (sinyal var) ama videolar
-   arası 0.02–0.07 puanlık sulanma boşluğu, küçük özneli kareyi yakın planlı alakasız
-   videoya yeniriyor. **Faz 1.5 öne çekildi — sıradaki iş.**
+   **→ 3 Temmuz 2026: KESİNLEŞTİ ve AYNI GÜN ÇÖZÜLDÜ.** Video içi sıralama doğruydu
+   ama videolar arası 0.02–0.07 puanlık sulanma küçük özneli kareyi yeniriyordu.
+   Faz 1.5 (YOLO kırpık embedding, §5b) uygulandı: "uzakta tek başına yürüyen insan"
+   artık ilk 3'te de doğru insan kırpığını getiriyor. Kalan sınır: ~10 px altı insan
+   YOLO tespit tabanının da altında (VIRAT kampüs segmenti) — gerekirse SAHI döşeme.
 2. **Zaman damgası gerçeği** — DVR dosya adları/mtimes yalan söyler; taban zaman yanlışsa her "dün gece" cevabı yanlış. Erken doğrula: görüntüye gömülü OSD saatini OCR ile çapraz kontrol et.
 3. **Eval seti yoksa karar da yok** — 1. haftada test videolarından **30–50 Türkçe sorgu → doğru kare** çifti oluştur; her model/eşik kararı (SigLIP2 yedeğine geçiş dahil) buna karşı ölçülür. Ayrıca: embedding ve küçük resimler de KVKK kapsamında kişisel veridir — saklama/silme politikası ilk günden tasarlanır.
