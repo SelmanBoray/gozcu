@@ -1,0 +1,74 @@
+Cihaz seçiliyor ve model yükleniyor (jinaai/jina-clip-v2)...
+A new version of the following files was downloaded from https://huggingface.co/jinaai/jina-clip-implementation:
+- hf_model.py
+- rope_embeddings.py
+- eva_model.py
+- transform.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+C:\Users\Selman\PycharmProjects\gozcu\.venv\Lib\site-packages\huggingface_hub\file_download.py:143: UserWarning: `huggingface_hub` cache-system uses symlinks by default to efficiently store duplicated files but your machine does not support them in C:\Users\Selman\.cache\huggingface\hub\models--jinaai--jina-clip-v2. Caching files will still work but in a degraded version that might require more space on your disk. This warning can be disabled by setting the `HF_HUB_DISABLE_SYMLINKS_WARNING` environment variable. For more details, see https://huggingface.co/docs/huggingface_hub/how-to-cache#limitations.
+To support symlinks on Windows, you either need to activate Developer Mode or to run Python as an administrator. In order to activate developer mode, see this article: https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development
+  warnings.warn(message)
+C:\Users\Selman\.cache\huggingface\modules\transformers_modules\jinaai\jina-clip-implementation\39e6a55ae971b59bea6e44675d237c99762e7ee2\modeling_clip.py:140: UserWarning: Flash attention is not installed. Check https://github.com/Dao-AILab/flash-attention?tab=readme-ov-file#installation-and-features for installation instructions, disabling
+  warnings.warn(
+C:\Users\Selman\.cache\huggingface\modules\transformers_modules\jinaai\jina-clip-implementation\39e6a55ae971b59bea6e44675d237c99762e7ee2\modeling_clip.py:175: UserWarning: xFormers is not installed. Check https://github.com/facebookresearch/xformers?tab=readme-ov-file#installing-xformers for installation instructions, disabling
+  warnings.warn(
+C:\Users\Selman\PycharmProjects\gozcu\.venv\Lib\site-packages\huggingface_hub\file_download.py:143: UserWarning: `huggingface_hub` cache-system uses symlinks by default to efficiently store duplicated files but your machine does not support them in C:\Users\Selman\.cache\huggingface\hub\models--jinaai--jina-embeddings-v3. Caching files will still work but in a degraded version that might require more space on your disk. This warning can be disabled by setting the `HF_HUB_DISABLE_SYMLINKS_WARNING` environment variable. For more details, see https://huggingface.co/docs/huggingface_hub/how-to-cache#limitations.
+To support symlinks on Windows, you either need to activate Developer Mode or to run Python as an administrator. In order to activate developer mode, see this article: https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development
+  warnings.warn(message)
+C:\Users\Selman\PycharmProjects\gozcu\.venv\Lib\site-packages\huggingface_hub\file_download.py:143: UserWarning: `huggingface_hub` cache-system uses symlinks by default to efficiently store duplicated files but your machine does not support them in C:\Users\Selman\.cache\huggingface\hub\models--jinaai--xlm-roberta-flash-implementation. Caching files will still work but in a degraded version that might require more space on your disk. This warning can be disabled by setting the `HF_HUB_DISABLE_SYMLINKS_WARNING` environment variable. For more details, see https://huggingface.co/docs/huggingface_hub/how-to-cache#limitations.
+To support symlinks on Windows, you either need to activate Developer Mode or to run Python as an administrator. In order to activate developer mode, see this article: https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development
+  warnings.warn(message)
+A new version of the following files was downloaded from https://huggingface.co/jinaai/xlm-roberta-flash-implementation:
+- configuration_xlm_roberta.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+A new version of the following files was downloaded from https://huggingface.co/jinaai/xlm-roberta-flash-implementation:
+- mlp.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+A new version of the following files was downloaded from https://huggingface.co/jinaai/xlm-roberta-flash-implementation:
+- xlm_padding.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+A new version of the following files was downloaded from https://huggingface.co/jinaai/xlm-roberta-flash-implementation:
+- embedding.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+A new version of the following files was downloaded from https://huggingface.co/jinaai/xlm-roberta-flash-implementation:
+- stochastic_depth.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+A new version of the following files was downloaded from https://huggingface.co/jinaai/xlm-roberta-flash-implementation:
+- rotary.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+A new version of the following files was downloaded from https://huggingface.co/jinaai/xlm-roberta-flash-implementation:
+- mha.py
+- rotary.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+A new version of the following files was downloaded from https://huggingface.co/jinaai/xlm-roberta-flash-implementation:
+- block.py
+- stochastic_depth.py
+- mha.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+A new version of the following files was downloaded from https://huggingface.co/jinaai/xlm-roberta-flash-implementation:
+- modeling_xlm_roberta.py
+- mlp.py
+- xlm_padding.py
+- embedding.py
+- block.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+A new version of the following files was downloaded from https://huggingface.co/jinaai/xlm-roberta-flash-implementation:
+- modeling_lora.py
+- modeling_xlm_roberta.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+C:\Users\Selman\PycharmProjects\gozcu\gozcu\store.py:39: UserWarning: Payload indexes have no effect in the local Qdrant. Please use server Qdrant if you need payload indexes.
+  self.client.create_payload_index(
+Model hazır (cihaz: cuda). 3 video indekslenecek.
+
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.48, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+C:\Users\Selman\PycharmProjects\gozcu\.venv\Lib\site-packages\huggingface_hub\file_download.py:143: UserWarning: `huggingface_hub` cache-system uses symlinks by default to efficiently store duplicated files but your machine does not support them in C:\Users\Selman\.cache\huggingface\hub\models--jinaai--jina-clip-implementation. Caching files will still work but in a degraded version that might require more space on your disk. This warning can be disabled by setting the `HF_HUB_DISABLE_SYMLINKS_WARNING` environment variable. For more details, see https://huggingface.co/docs/huggingface_hub/how-to-cache#limitations.
+To support symlinks on Windows, you either need to activate Developer Mode or to run Python as an administrator. In order to activate developer mode, see this article: https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development
+  warnings.warn(message)
+A new version of the following files was downloaded from https://huggingface.co/jinaai/jina-clip-implementation:
+- processing_clip.py
+. Make sure to double-check they do not contain any added malicious code. To avoid downloading new versions of the code file, you can pin a revision.
+  video_1.mp4: 12 kare indekslendi (4.0 sn, 3.0 kare/sn) — tahmini başlangıç: 27.03.2026 18:29:35
+  video_2.mp4: 12 kare indekslendi (3.0 sn, 4.0 kare/sn) — tahmini başlangıç: 27.03.2026 18:29:34
+  video_3.mp4: 13 kare indekslendi (3.0 sn, 4.4 kare/sn) — tahmini başlangıç: 27.03.2026 18:29:40
+
+Bitti: 37 yeni kare, toplam süre 10.3 sn. İndeksteki toplam kare: 37

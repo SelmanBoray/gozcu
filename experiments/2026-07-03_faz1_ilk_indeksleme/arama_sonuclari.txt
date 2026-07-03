@@ -1,0 +1,60 @@
+  warnings.warn(
+  warnings.warn(
+To support symlinks on Windows, you either need to activate Developer Mode or to run Python as an administrator. In order to activate developer mode, see this article: https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development
+  warnings.warn(message)
+
+=== SORGU: "kapalı otoparkta siyah SUV" ===
+  görsel metin: "kapalı otoparkta siyah suv"
+  1. 0.365  video_1  offset=  2.5s  125.jpg
+  2. 0.362  video_3  offset=  3.5s  175.jpg
+  3. 0.359  video_2  offset=  1.5s  75.jpg
+  4. 0.359  video_2  offset=  3.0s  150.jpg
+  5. 0.359  video_1  offset=  2.0s  100.jpg
+
+=== SORGU: "farları açık araba" ===
+  görsel metin: "farları açık araba"
+  1. 0.367  video_2  offset=  1.5s  75.jpg
+  2. 0.362  video_1  offset=  2.0s  100.jpg
+  3. 0.359  video_2  offset=  2.5s  125.jpg
+  4. 0.358  video_3  offset=  3.5s  175.jpg
+  5. 0.358  video_1  offset=  2.5s  125.jpg
+
+=== SORGU: "telefonla konuşan sürücü" ===
+  görsel metin: "telefonla konuşan sürücü"
+  1. 0.292  video_2  offset=  3.0s  150.jpg
+  2. 0.290  video_2  offset=  3.5s  175.jpg
+  3. 0.278  video_2  offset=  2.5s  125.jpg
+  4. 0.277  video_1  offset=  3.0s  150.jpg
+  5. 0.268  video_1  offset=  3.5s  175.jpg
+
+=== SORGU: "otoparkta park etmiş araç" ===
+  görsel metin: "otoparkta park etmiş araç"
+  1. 0.360  video_2  offset=  2.5s  125.jpg
+  2. 0.359  video_3  offset=  4.0s  200.jpg
+  3. 0.358  video_1  offset=  2.0s  100.jpg
+  4. 0.357  video_1  offset=  2.5s  125.jpg
+  5. 0.357  video_1  offset=  3.0s  150.jpg
+
+=== SORGU: "boş otopark koridoru" ===
+  görsel metin: "boş otopark koridoru"
+  1. 0.360  video_3  offset=  1.5s  75.jpg
+  2. 0.358  video_3  offset=  2.0s  100.jpg
+  3. 0.355  video_1  offset=  7.0s  350.jpg
+  4. 0.353  video_3  offset=  1.0s  50.jpg
+  5. 0.353  video_1  offset=  6.5s  325.jpg
+
+=== SORGU: "dün gece otoparka giren siyah araç" ===
+  görsel metin: "otoparka giren siyah araç"
+  zaman filtresi: "dün gece" → 02.07.2026 20:00 — 03.07.2026 06:00
+  UYARI: zaman aralığında sonuç yok — filtresiz tekrar arandı
+  1. 0.391  video_3  offset=  3.5s  175.jpg
+  2. 0.384  video_1  offset=  2.5s  125.jpg
+  3. 0.382  video_1  offset=  3.5s  175.jpg
+  4. 0.382  video_2  offset=  3.0s  150.jpg
+  5. 0.381  video_3  offset=  4.0s  200.jpg
+Exception ignored in: <function QdrantClient.__del__ at 0x000001B9F60E7880>
+Traceback (most recent call last):
+  File "C:\Users\Selman\PycharmProjects\gozcu\.venv\Lib\site-packages\qdrant_client\qdrant_client.py", line 169, in __del__
+  File "C:\Users\Selman\PycharmProjects\gozcu\.venv\Lib\site-packages\qdrant_client\qdrant_client.py", line 178, in close
+  File "C:\Users\Selman\PycharmProjects\gozcu\.venv\Lib\site-packages\qdrant_client\local\qdrant_local.py", line 85, in close
+ImportError: sys.meta_path is None, Python is likely shutting down

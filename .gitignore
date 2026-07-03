@@ -12,8 +12,11 @@ dist/
 .vscode/
 
 # ── Veri ve çıktılar (git'e girmez — büyük/hassas) ──
+# Deney notları (md/txt/py) git'e girer; görüntü ve video girmez
 data/
-experiments/
+experiments/**/*.jpg
+experiments/**/*.png
+experiments/**/*.gif
 *.mp4
 *.avi
 *.mkv
