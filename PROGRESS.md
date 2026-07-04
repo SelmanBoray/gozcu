@@ -17,6 +17,19 @@
 
 **Sıradaki adım:** statik lotlara daha uzun MEVA segmenti (kare-açlığı) ya da Faz 2 VLM.
 
+## 4 Temmuz 2026 (gece) — Statik lot zenginleştirme: kare-açlığı giderildi (Olgu B kapandı)
+
+- meva_okul2 + meva_otobus MEVA'dan 60→180 sn yeniden çekildi: her biri **1→3 kare**.
+- **Ölçüldü:** meva_okul2 "araçlarla dolu açık otopark" sahne-kare sırası **8→5**
+  (zenginleşme + boost); kırpık-seli tamamen elendi (v2 Faz 1.5 marjini −0.333→0.000).
+  v1 kilitli sıfır regresyon.
+- **Nüans (Olgu A tekrarı):** v2 pinpoint golden (frame_idx=0) "rank 9" diyor ama SAHNE
+  top-5'te — çapa karesi (60/120sn) rank 5'i alıyor. Ders: statik sahne için pinpoint
+  golden yanlış, video+kare metriği doğru. Kalan (VIRAT üstte) = meşru doğru sıralama.
+- Detay: `experiments/2026-07-04_lot_zenginlestirme/`
+
+**Sıradaki adım:** Faz 2 VLM re-rank (negatif örtüşme + öznitelik + Olgu A kümeleme).
+
 ## 4 Temmuz 2026 (akşam) — Korpus büyütüldü (MEVA): eval artık ayrımcı, 2 gerçek olgu çıktı
 
 - AI Engineer kaynak seçti: **MEVA KF1** (VIRAT halefi, S3 public, HTTP Range destekli —

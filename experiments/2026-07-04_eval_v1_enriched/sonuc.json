@@ -1,0 +1,1603 @@
+{
+  "meta": {
+    "date": "2026-07-04 17:57",
+    "n_queries": 22,
+    "n_scorable": 12,
+    "n_advisory": 4,
+    "n_zaman": 2,
+    "n_neg": 4,
+    "index_count": 4395,
+    "k": 10,
+    "model": "jinaai/jina-clip-v2"
+  },
+  "aggregate": {
+    "video_level": {
+      "combined": {
+        "n": 9,
+        "recall@1": {
+          "value": 0.889,
+          "ci95": [
+            0.565,
+            0.98
+          ]
+        },
+        "recall@5": {
+          "value": 1.0,
+          "ci95": [
+            0.701,
+            1.0
+          ]
+        },
+        "recall@10": {
+          "value": 1.0,
+          "ci95": [
+            0.701,
+            1.0
+          ]
+        },
+        "mrr": 0.944
+      },
+      "frame": {
+        "n": 9,
+        "recall@1": {
+          "value": 0.889,
+          "ci95": [
+            0.565,
+            0.98
+          ]
+        },
+        "recall@5": {
+          "value": 0.889,
+          "ci95": [
+            0.565,
+            0.98
+          ]
+        },
+        "recall@10": {
+          "value": 0.889,
+          "ci95": [
+            0.565,
+            0.98
+          ]
+        },
+        "mrr": 0.944
+      },
+      "crop": {
+        "n": 9,
+        "recall@1": {
+          "value": 0.778,
+          "ci95": [
+            0.453,
+            0.937
+          ]
+        },
+        "recall@5": {
+          "value": 0.889,
+          "ci95": [
+            0.565,
+            0.98
+          ]
+        },
+        "recall@10": {
+          "value": 0.889,
+          "ci95": [
+            0.565,
+            0.98
+          ]
+        },
+        "mrr": 0.944
+      }
+    },
+    "golden": {
+      "combined": {
+        "n": 3,
+        "recall@1": {
+          "value": 1.0,
+          "ci95": [
+            0.438,
+            1.0
+          ]
+        },
+        "recall@5": {
+          "value": 1.0,
+          "ci95": [
+            0.438,
+            1.0
+          ]
+        },
+        "recall@10": {
+          "value": 1.0,
+          "ci95": [
+            0.438,
+            1.0
+          ]
+        },
+        "mrr": 1.0
+      },
+      "frame": {
+        "n": 3,
+        "recall@1": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.562
+          ]
+        },
+        "recall@5": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.562
+          ]
+        },
+        "recall@10": {
+          "value": 0.0,
+          "ci95": [
+            0.0,
+            0.562
+          ]
+        },
+        "mrr": 1.0
+      },
+      "crop": {
+        "n": 3,
+        "recall@1": {
+          "value": 1.0,
+          "ci95": [
+            0.438,
+            1.0
+          ]
+        },
+        "recall@5": {
+          "value": 1.0,
+          "ci95": [
+            0.438,
+            1.0
+          ]
+        },
+        "recall@10": {
+          "value": 1.0,
+          "ci95": [
+            0.438,
+            1.0
+          ]
+        },
+        "mrr": 1.0
+      }
+    },
+    "scorable_all_combined": {
+      "n": 12,
+      "recall@1": {
+        "value": 0.917,
+        "ci95": [
+          0.646,
+          0.985
+        ]
+      },
+      "recall@5": {
+        "value": 1.0,
+        "ci95": [
+          0.757,
+          1.0
+        ]
+      },
+      "recall@10": {
+        "value": 1.0,
+        "ci95": [
+          0.757,
+          1.0
+        ]
+      },
+      "mrr": 0.958
+    },
+    "macro_recall@5": 1.0,
+    "faz15_ablation": {
+      "combined_r@5": 1.0,
+      "frame_only_r@5": 0.667,
+      "crop_only_r@5": 0.917,
+      "marginal": 0.333
+    },
+    "discrimination": {
+      "positive_top1_scores": [
+        0.282,
+        0.349,
+        0.363,
+        0.363,
+        0.364,
+        0.366,
+        0.366,
+        0.377,
+        0.384,
+        0.392,
+        0.408,
+        0.452
+      ],
+      "negative_top1_scores": [
+        0.255,
+        0.283,
+        0.36
+      ],
+      "negatives_gated": [
+        "neg_bisiklet"
+      ],
+      "negatives_gate_rate": 0.25,
+      "false_gates": [],
+      "negatives_detail": [
+        {
+          "id": "neg_bisiklet",
+          "neg_type": "class_absent",
+          "gated": true,
+          "top1_score": null,
+          "top1_wrong_class": null
+        },
+        {
+          "id": "neg_kopek",
+          "neg_type": "class_absent",
+          "gated": false,
+          "top1_score": 0.36,
+          "top1_wrong_class": "insan"
+        },
+        {
+          "id": "neg_yagmur",
+          "neg_type": "attribute_absent",
+          "gated": false,
+          "top1_score": 0.255,
+          "top1_wrong_class": "insan"
+        },
+        {
+          "id": "neg_kar",
+          "neg_type": "attribute_absent",
+          "gated": false,
+          "top1_score": 0.283,
+          "top1_wrong_class": "insan"
+        }
+      ]
+    },
+    "targets": {
+      "video_scorable_recall@5": 0.8,
+      "golden_recall@1": 0.66,
+      "faz15_marginal_recall@5": 0.0
+    }
+  },
+  "results": [
+    {
+      "id": "obj_otobus",
+      "query": "otobüs",
+      "gt_type": "class",
+      "category": "nesne",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "ucf_trafik"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "otobüs",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "otobüs",
+        "score": 0.366
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "otobüs",
+          "score": 0.366
+        },
+        {
+          "rank": 2,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "otobüs",
+          "score": 0.366
+        },
+        {
+          "rank": 3,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "otobüs",
+          "score": 0.362
+        },
+        {
+          "rank": 4,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "otobüs",
+          "score": 0.361
+        },
+        {
+          "rank": 5,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "otobüs",
+          "score": 0.359
+        }
+      ],
+      "video_ranks": {
+        "combined": 1,
+        "frame": 1,
+        "crop": 1
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0
+    },
+    {
+      "id": "obj_motosiklet",
+      "query": "motosiklet",
+      "gt_type": "class",
+      "category": "nesne",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "video_1",
+        "video_2",
+        "video_3"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "motosiklet",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "video_3",
+        "source": "crop",
+        "yolo_class": "motosiklet",
+        "score": 0.282
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "video_3",
+          "source": "crop",
+          "yolo_class": "motosiklet",
+          "score": 0.282
+        },
+        {
+          "rank": 2,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.257
+        },
+        {
+          "rank": 3,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.251
+        },
+        {
+          "rank": 4,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.248
+        },
+        {
+          "rank": 5,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.247
+        }
+      ],
+      "video_ranks": {
+        "combined": 1,
+        "frame": null,
+        "crop": 1
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0
+    },
+    {
+      "id": "obj_kamyon",
+      "query": "kamyon",
+      "gt_type": "class",
+      "category": "nesne",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "VIRAT_kampus",
+        "VIRAT_otopark",
+        "ucf_trafik"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "kamyon",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "score": 0.363
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.363
+        },
+        {
+          "rank": 2,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.341
+        },
+        {
+          "rank": 3,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.329
+        },
+        {
+          "rank": 4,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.328
+        },
+        {
+          "rank": 5,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.323
+        }
+      ],
+      "video_ranks": {
+        "combined": 1,
+        "frame": 1,
+        "crop": 1
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0
+    },
+    {
+      "id": "scene_gece",
+      "query": "gece çekilmiş kamera görüntüsü",
+      "gt_type": "scene",
+      "category": "sahne",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "ucf_gece"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "gece çekilmiş kamera görüntüsü",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "ucf_gece",
+        "source": "frame",
+        "yolo_class": null,
+        "score": 0.452
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "ucf_gece",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.452
+        },
+        {
+          "rank": 2,
+          "video": "ucf_gece",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.446
+        },
+        {
+          "rank": 3,
+          "video": "ucf_gece",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.438
+        },
+        {
+          "rank": 4,
+          "video": "ucf_gece",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.429
+        }
+      ],
+      "video_ranks": {
+        "combined": 1,
+        "frame": 1,
+        "crop": 1
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0
+    },
+    {
+      "id": "scene_karanlik_yol",
+      "query": "karanlıkta ilerleyen araçlar",
+      "gt_type": "scene",
+      "category": "sahne",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "ucf_gece"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "karanlıkta ilerleyen araçlar",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "video_3",
+        "source": "crop",
+        "yolo_class": "araba",
+        "score": 0.392
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "video_3",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.392
+        },
+        {
+          "rank": 2,
+          "video": "ucf_gece",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.369
+        },
+        {
+          "rank": 3,
+          "video": "video_1",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.359
+        },
+        {
+          "rank": 4,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.354
+        },
+        {
+          "rank": 5,
+          "video": "video_2",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.353
+        }
+      ],
+      "video_ranks": {
+        "combined": 2,
+        "frame": 1,
+        "crop": null
+      },
+      "recall": {
+        "@1": false,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 0.5
+    },
+    {
+      "id": "scene_kapali_otopark",
+      "query": "kapalı otopark katı",
+      "gt_type": "scene",
+      "category": "sahne",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "video_1",
+        "video_2",
+        "video_3"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "kapalı otopark katı",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "video_2",
+        "source": "frame",
+        "yolo_class": null,
+        "score": 0.377
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "video_2",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.377
+        },
+        {
+          "rank": 2,
+          "video": "video_1",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.375
+        },
+        {
+          "rank": 3,
+          "video": "video_3",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.373
+        },
+        {
+          "rank": 4,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.358
+        }
+      ],
+      "video_ranks": {
+        "combined": 1,
+        "frame": 1,
+        "crop": 2
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0
+    },
+    {
+      "id": "scene_yogun_trafik",
+      "query": "yoğun trafik akışı",
+      "gt_type": "scene",
+      "category": "sahne",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "ucf_trafik"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "yoğun trafik akışı",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "score": 0.366
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.366
+        },
+        {
+          "rank": 2,
+          "video": "ucf_trafik",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.357
+        },
+        {
+          "rank": 3,
+          "video": "ucf_trafik",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.355
+        },
+        {
+          "rank": 4,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.355
+        },
+        {
+          "rank": 5,
+          "video": "ucf_trafik",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.354
+        }
+      ],
+      "video_ranks": {
+        "combined": 1,
+        "frame": 1,
+        "crop": 1
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0
+    },
+    {
+      "id": "scene_acik_otopark",
+      "query": "açık hava otopark alanı",
+      "gt_type": "scene",
+      "category": "sahne",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "VIRAT_kampus",
+        "VIRAT_otopark"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "açık hava otopark alanı",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "VIRAT_otopark",
+        "source": "frame",
+        "yolo_class": null,
+        "score": 0.364
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "VIRAT_otopark",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.364
+        },
+        {
+          "rank": 2,
+          "video": "VIRAT_otopark",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.364
+        },
+        {
+          "rank": 3,
+          "video": "VIRAT_otopark",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.362
+        },
+        {
+          "rank": 4,
+          "video": "VIRAT_otopark",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.354
+        }
+      ],
+      "video_ranks": {
+        "combined": 1,
+        "frame": 1,
+        "crop": 1
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0
+    },
+    {
+      "id": "beh_uzakta_yuruyen",
+      "query": "uzakta tek başına yürüyen insan",
+      "gt_type": "scene",
+      "category": "davranis",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "VIRAT_otopark",
+        "ucf_gece"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "uzakta tek başına yürüyen insan",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "score": 0.363
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.363
+        },
+        {
+          "rank": 2,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.358
+        },
+        {
+          "rank": 3,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.358
+        },
+        {
+          "rank": 4,
+          "video": "meva_hastane1",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.355
+        }
+      ],
+      "video_ranks": {
+        "combined": 1,
+        "frame": 1,
+        "crop": 1
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0
+    },
+    {
+      "id": "gold_telefon_surucu",
+      "query": "telefonla konuşan sürücü",
+      "gt_type": "golden",
+      "category": "davranis",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "video_1",
+        "video_2",
+        "video_3"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "telefonla konuşan sürücü",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "video_2",
+        "source": "crop",
+        "yolo_class": "insan",
+        "score": 0.408
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "video_2",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.408
+        },
+        {
+          "rank": 2,
+          "video": "video_3",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.353
+        },
+        {
+          "rank": 3,
+          "video": "video_1",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.352
+        }
+      ],
+      "golden_ranks": {
+        "combined": 1,
+        "frame": null,
+        "crop": 1
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0,
+      "fail_attribution": null
+    },
+    {
+      "id": "gold_yuruyen_insan",
+      "query": "yürüyen insan",
+      "gt_type": "golden",
+      "category": "nesne",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "VIRAT_otopark",
+        "ucf_gece",
+        "ucf_trafik",
+        "video_1",
+        "video_2",
+        "video_3"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "yürüyen insan",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "score": 0.384
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.384
+        },
+        {
+          "rank": 2,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.383
+        },
+        {
+          "rank": 3,
+          "video": "meva_hastane1",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.374
+        },
+        {
+          "rank": 4,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.36
+        }
+      ],
+      "golden_ranks": {
+        "combined": 1,
+        "frame": null,
+        "crop": 1
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0,
+      "fail_attribution": null
+    },
+    {
+      "id": "gold_parkta_yuruyen",
+      "query": "park halindeki arabaların arasında yürüyen kişi",
+      "gt_type": "golden",
+      "category": "davranis",
+      "scorable_recall": true,
+      "relevant_videos": [
+        "VIRAT_otopark"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "park halindeki arabaların arasında yürüyen kişi",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "score": 0.349
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.349
+        },
+        {
+          "rank": 2,
+          "video": "video_1",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.322
+        },
+        {
+          "rank": 3,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.322
+        },
+        {
+          "rank": 4,
+          "video": "video_2",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.32
+        },
+        {
+          "rank": 5,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.316
+        }
+      ],
+      "golden_ranks": {
+        "combined": 1,
+        "frame": null,
+        "crop": 1
+      },
+      "recall": {
+        "@1": true,
+        "@5": true,
+        "@10": true
+      },
+      "rr": 1.0,
+      "fail_attribution": null
+    },
+    {
+      "id": "adv_siyah_suv",
+      "query": "siyah SUV araç",
+      "gt_type": "advisory",
+      "category": "oznitelik",
+      "scorable_recall": false,
+      "relevant_videos": [
+        "video_1",
+        "video_2",
+        "video_3"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "siyah suv araç",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "araba",
+        "score": 0.348
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.348
+        },
+        {
+          "rank": 2,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.322
+        },
+        {
+          "rank": 3,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.318
+        },
+        {
+          "rank": 4,
+          "video": "meva_hastane2",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.317
+        },
+        {
+          "rank": 5,
+          "video": "video_3",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.312
+        }
+      ]
+    },
+    {
+      "id": "adv_mavi_kamyonet",
+      "query": "mavi kamyonet",
+      "gt_type": "advisory",
+      "category": "oznitelik",
+      "scorable_recall": false,
+      "relevant_videos": [
+        "ucf_trafik"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "mavi kamyonet",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "score": 0.372
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.372
+        },
+        {
+          "rank": 2,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.364
+        },
+        {
+          "rank": 3,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "otobüs",
+          "score": 0.327
+        },
+        {
+          "rank": 4,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.308
+        },
+        {
+          "rank": 5,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "otobüs",
+          "score": 0.298
+        }
+      ]
+    },
+    {
+      "id": "adv_beyaz_arac",
+      "query": "beyaz renkli araba",
+      "gt_type": "advisory",
+      "category": "oznitelik",
+      "scorable_recall": false,
+      "relevant_videos": [
+        "VIRAT_kampus",
+        "VIRAT_otopark",
+        "ucf_trafik"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "beyaz renkli araba",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "score": 0.382
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.382
+        },
+        {
+          "rank": 2,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.379
+        },
+        {
+          "rank": 3,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.378
+        },
+        {
+          "rank": 4,
+          "video": "meva_hastane1",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.377
+        },
+        {
+          "rank": 5,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.374
+        }
+      ]
+    },
+    {
+      "id": "adv_direksiyon",
+      "query": "direksiyon başındaki sürücü",
+      "gt_type": "advisory",
+      "category": "davranis",
+      "scorable_recall": false,
+      "relevant_videos": [
+        "video_1",
+        "video_2",
+        "video_3"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "direksiyon başındaki sürücü",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "video_3",
+        "source": "crop",
+        "yolo_class": "insan",
+        "score": 0.377
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "video_3",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.377
+        },
+        {
+          "rank": 2,
+          "video": "video_1",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.376
+        },
+        {
+          "rank": 3,
+          "video": "video_2",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.368
+        },
+        {
+          "rank": 4,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.313
+        }
+      ]
+    },
+    {
+      "id": "time_dun_gece",
+      "query": "dün gece otoparka giren araç",
+      "gt_type": "zaman",
+      "category": "zaman",
+      "scorable_recall": false,
+      "relevant_videos": [
+        "VIRAT_otopark",
+        "video_1",
+        "video_2",
+        "video_3"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "otoparka giren araç",
+      "time_phrase": "dün gece",
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "araba",
+        "score": 0.381
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.381
+        },
+        {
+          "rank": 2,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.368
+        },
+        {
+          "rank": 3,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.349
+        },
+        {
+          "rank": 4,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.339
+        },
+        {
+          "rank": 5,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.333
+        }
+      ]
+    },
+    {
+      "id": "time_son_saat",
+      "query": "son 3 saatte geçen kamyon",
+      "gt_type": "zaman",
+      "category": "zaman",
+      "scorable_recall": false,
+      "relevant_videos": [
+        "VIRAT_otopark",
+        "ucf_trafik"
+      ],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "geçen kamyon",
+      "time_phrase": "son 3 saatte",
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "meva_otobus",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "score": 0.316
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "meva_otobus",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.316
+        },
+        {
+          "rank": 2,
+          "video": "meva_okul2",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.307
+        },
+        {
+          "rank": 3,
+          "video": "meva_okul2",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.261
+        },
+        {
+          "rank": 4,
+          "video": "meva_okul2",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.254
+        },
+        {
+          "rank": 5,
+          "video": "meva_otobus",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.191
+        }
+      ]
+    },
+    {
+      "id": "neg_bisiklet",
+      "query": "kırmızı bisiklet süren çocuk",
+      "gt_type": "negatif",
+      "category": "negatif",
+      "scorable_recall": false,
+      "relevant_videos": [],
+      "gated": true,
+      "not_found_reason": "Korpusta 'bisiklet' tespit edilmedi — bu nesne kayıtlarda yok.",
+      "parsed_visual": "kırmızı bisiklet süren çocuk",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": null,
+      "top5": [],
+      "neg_type": "class_absent",
+      "top1_wrong_class": null
+    },
+    {
+      "id": "neg_kopek",
+      "query": "köpek gezdiren adam",
+      "gt_type": "negatif",
+      "category": "negatif",
+      "scorable_recall": false,
+      "relevant_videos": [],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "köpek gezdiren adam",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "score": 0.36
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.36
+        },
+        {
+          "rank": 2,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.324
+        },
+        {
+          "rank": 3,
+          "video": "meva_hastane1",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.322
+        },
+        {
+          "rank": 4,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.285
+        },
+        {
+          "rank": 5,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.273
+        }
+      ],
+      "neg_type": "class_absent",
+      "top1_wrong_class": "insan"
+    },
+    {
+      "id": "neg_yagmur",
+      "query": "yağmurda şemsiyeli insanlar",
+      "gt_type": "negatif",
+      "category": "negatif",
+      "scorable_recall": false,
+      "relevant_videos": [],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "yağmurda şemsiyeli insanlar",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "score": 0.255
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.255
+        },
+        {
+          "rank": 2,
+          "video": "meva_hastane1",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.242
+        },
+        {
+          "rank": 3,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.224
+        },
+        {
+          "rank": 4,
+          "video": "meva_okul1",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.213
+        },
+        {
+          "rank": 5,
+          "video": "VIRAT_otopark",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.202
+        }
+      ],
+      "neg_type": "attribute_absent",
+      "top1_wrong_class": "insan"
+    },
+    {
+      "id": "neg_kar",
+      "query": "karla kaplı sokak",
+      "gt_type": "negatif",
+      "category": "negatif",
+      "scorable_recall": false,
+      "relevant_videos": [],
+      "gated": false,
+      "not_found_reason": null,
+      "parsed_visual": "karla kaplı sokak",
+      "time_phrase": null,
+      "time_filter_dropped": false,
+      "top1": {
+        "video": "meva_hastane1",
+        "source": "crop",
+        "yolo_class": "insan",
+        "score": 0.283
+      },
+      "top5": [
+        {
+          "rank": 1,
+          "video": "meva_hastane1",
+          "source": "crop",
+          "yolo_class": "insan",
+          "score": 0.283
+        },
+        {
+          "rank": 2,
+          "video": "meva_hastane2",
+          "source": "crop",
+          "yolo_class": "araba",
+          "score": 0.279
+        },
+        {
+          "rank": 3,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "kamyon",
+          "score": 0.277
+        },
+        {
+          "rank": 4,
+          "video": "ucf_gece",
+          "source": "frame",
+          "yolo_class": null,
+          "score": 0.257
+        },
+        {
+          "rank": 5,
+          "video": "ucf_trafik",
+          "source": "crop",
+          "yolo_class": "otobüs",
+          "score": 0.268
+        }
+      ],
+      "neg_type": "attribute_absent",
+      "top1_wrong_class": "insan"
+    }
+  ]
+}
