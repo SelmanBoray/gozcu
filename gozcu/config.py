@@ -70,7 +70,7 @@ class Settings(BaseSettings):
     vlm_top_n: int = 8                    # yalnız top-N aday doğrulanır (latency)
     vlm_drop_below: float = 0.3           # negasyon: eşleşme-güveni bu altındaysa düşür (absent)
     vlm_beta: float = 0.5                 # öznitelik rerank ağırlığı (skor-boşluğundan kalibre)
-    vlm_timeout_s: float = 45.0           # CLIP+VLM 8GB'de eşzamanlı → bazı çağrılar spike yapar
+    vlm_timeout_s: float = 30.0           # 21s spike'ları absorbe eder; streaming'de takılmayı kısaltır
 
 
 settings = Settings()

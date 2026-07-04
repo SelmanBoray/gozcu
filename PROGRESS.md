@@ -1,5 +1,19 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 5 Temmuz 2026 (öğle) — Per-item streaming: VLM rozetleri canlı doluyor
+
+- `search.py` bölündü: `verify_top_n` (callback'li, her verdict'te `on_verdict(i,hit)`) +
+  `_fuse_verdicts` (füzyon) + public `stream_verify`. `_apply_vlm`=ikisi (CLI batch).
+- **Viewer per-item streaming:** CLIP kartları ⏳ ile gelir; her VLM verdict'i o kartın
+  rozetini CANLI doldurur (⏳→✅ renk doğru/✅ conf/🚫), sonra final reflow. Cache VLM
+  tarafında `@cache_data` yerine `session_state` (streaming canlı render gerektiriyor).
+- **TARAYICIYLA GÖRSEL DOĞRULANDI** (Chrome): "siyah SUV araç" → kart 1 "✅ renk doğru"
+  belirdi, kartlar 2-4 ⏳; sonra kart 1,3,4 "✅ renk doğru", kart 2 çözüldü. Rozetler tek
+  tek canlı doldu. Ayrıca "köpek gezdiren adam" → CLIP insanlar → BULUNAMADI + "VLM
+  elenenler (5)" expander (önceki batch doğrulamasında).
+- Güvenilirlik: yavaş çağrı (spike) akışı kısa durdurabilir → `vlm_timeout_s=30` (21s
+  spike absorbe, hang 30s'de kapanır, kart rozetsiz akış devam). Detay: ARCHITECTURE.md §8b
+
 ## 5 Temmuz 2026 — Async VLM rafine: progressive render (interaktif latency çözüldü)
 
 - AI Engineer: gerçek thread değil **progressive render** (tek-kullanıcı demo). VLM latency

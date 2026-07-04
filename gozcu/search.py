@@ -120,37 +120,42 @@ def _dedup_and_group(hits: list[dict], top_k: int) -> list[dict]:
     return kept
 
 
-def _apply_vlm(results: list[dict], visual_text: str) -> tuple[list[dict], str | None]:
-    """Faz 2 — top-N adayı VLM ile doğrula. İki mod (renk var mı?):
-
-    - **Negasyon** (renk yok, ör. köpek/yağmur): eşleşme-güveni `vlm_drop_below` altındaki
-      adayı DÜŞÜR (aranan konsept görüntüde yok). Hepsi düşerse → bulunamadı.
-    - **Öznitelik** (renk var, ör. siyah SUV): DÜŞÜRME (renk güvenilmez, AI Engineer) —
-      yalnız sınırlı rerank `z(cos) + β·conf·[color_match]`.
-    - VLM hatası (None): dokunma, CLIP sıralaması korunur (halüsinasyon/erişim koruması).
-    """
+def verify_top_n(results: list[dict], visual_text: str, on_verdict=None) -> None:
+    """Top-N adayı VLM ile doğrula, `h['_vlm']` doldur. Her verdict sonrası (streaming için)
+    `on_verdict(i, hit)` çağır. Füzyon YOK — yalnız verdict toplama."""
     from gozcu.verifier import verify_hit
 
     en = translate_visual(visual_text)
+    ask_color = has_color(visual_text)
+    for i, h in enumerate(results[: settings.vlm_top_n]):
+        h["_vlm"] = verify_hit(h, en, ask_color)
+        if on_verdict is not None:
+            on_verdict(i, h)
+
+
+def _fuse_verdicts(results: list[dict], visual_text: str) -> tuple[list[dict], list[dict], str | None]:
+    """Toplanmış `h['_vlm']` verdict'lerinden füzyon. İki mod (renk var mı?):
+
+    - **Negasyon** (renk yok): eşleşme-güveni `vlm_drop_below` altındaki adayı DÜŞÜR;
+      hepsi düşerse → bulunamadı.
+    - **Öznitelik** (renk var): DÜŞÜRME (renk güvenilmez) — yalnız rerank `z(cos)+β·conf·[color]`.
+    - VLM hatası (None): dokunma (CLIP sıralaması korunur).
+    """
     ask_color = has_color(visual_text)
     head, tail = results[: settings.vlm_top_n], results[settings.vlm_top_n:]
 
     survivors: list[dict] = []
     filtered: list[dict] = []
     for h in head:
-        v = verify_hit(h, en, ask_color)
-        h["_vlm"] = v
-        # Negasyon modu: yüksek-güvenle "eşleşmiyor" → düşür (renk modunda düşürme)
+        v = h.get("_vlm")
         if v and not ask_color and v["confidence"] < settings.vlm_drop_below:
             filtered.append(h)
             continue
         survivors.append(h)
 
-    # ── Negasyonda head tümü düştüyse: konsept korpusta yok → bulunamadı ──
     if not ask_color and head and not survivors:
         return [], filtered, "VLM: tanımlanan sahne/nesne görüntülerde doğrulanamadı."
 
-    # ── Sınırlı rerank (z-normalize cosine + eşleşme bonusu) ──
     if survivors:
         scores = [h["score"] for h in survivors]
         mean = sum(scores) / len(scores)
@@ -159,14 +164,30 @@ def _apply_vlm(results: list[dict], visual_text: str) -> tuple[list[dict], str |
             v = h.get("_vlm")
             bonus = 0.0
             if v:
-                if ask_color:  # öznitelik: renk eşleşmesini ödüllendir
-                    signal = 1.0 if v["color_match"] else 0.0
-                else:          # negasyon-sonrası: eşleşme güvenini ödüllendir
-                    signal = 1.0
+                signal = (1.0 if v["color_match"] else 0.0) if ask_color else 1.0
                 bonus = settings.vlm_beta * v["confidence"] * signal
             h["_vrank"] = (h["score"] - mean) / std + bonus
         survivors.sort(key=lambda x: -x["_vrank"])
     return survivors + tail, filtered, None
+
+
+def _apply_vlm(results: list[dict], visual_text: str) -> tuple[list[dict], list[dict], str | None]:
+    """Batch: doğrula + füzyon (CLI/senkron). Streaming için stream_verify kullanılır."""
+    verify_top_n(results, visual_text)
+    return _fuse_verdicts(results, visual_text)
+
+
+def stream_verify(outcome: SearchOutcome, on_verdict=None) -> SearchOutcome:
+    """Per-item streaming rafine: her verdict sonrası `on_verdict(i, hit)` (viewer canlı rozet),
+    sonra füzyon → rafine SearchOutcome. needs_vlm/VLM-hazır değilse aynen döner."""
+    text = outcome.parsed.visual_text or ""
+    if not outcome.results or not needs_vlm(text) or not _vlm_ready():
+        return outcome
+    verify_top_n(outcome.results, text, on_verdict)
+    results, filtered, nf = _fuse_verdicts(outcome.results, text)
+    return SearchOutcome(results=results, parsed=outcome.parsed,
+                         time_filter_dropped=outcome.time_filter_dropped, not_found_reason=nf,
+                         vlm_applied=True, vlm_filtered=filtered)
 
 
 def refine_vlm(outcome: SearchOutcome) -> SearchOutcome:

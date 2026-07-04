@@ -217,11 +217,17 @@ DEĞİL, **progressive render** (tek-kullanıcı demo için thread kırılganlı
 
 - `search()` bölündü: `search(use_vlm=False)` (CLIP, ~0.1s) + public `refine_vlm(outcome)`
   (VLM ikinci faz). `search(use_vlm=True)` = ikisi (CLI senkron kalır).
-- **Viewer:** CLIP sonucu ANINDA `st.empty` slot'a → `st.status` altında VLM koşar →
-  aynı slot'u VLM sonucuyla YERİNDE değiştirir (iki bölüm değil). Elenenler `expander`'da
-  ("VLM elenenler" — sessizce kaybolmasın, CLIP ham recall'ı görünsün).
-- **Cache ZORUNLU:** `@st.cache_data` (sorgu,top_k) — her rerun (Oynat tıklaması) VLM'i
-  yeniden koşmasın. `st.form` submit — keystroke başına arama yok.
+- **Viewer — per-item streaming:** CLIP kartları ANINDA `⏳` ile gösterilir; `stream_verify`
+  her adayı SIRAYLA doğrular ve `on_verdict(i,hit)` callback'i o kartın rozetini CANLI
+  doldurur (⏳→✅ renk/✅ conf/🚫). Bitince final reflow (yeniden sıralama + elenenler
+  `expander`'da — "VLM elenenler", CLIP ham recall'ı görünsün). `search.py` bölündü:
+  `verify_top_n` (callback'li) + `_fuse_verdicts` (füzyon) + public `stream_verify`.
+- **Cache:** `@st.cache_data` (CLIP) + **`session_state` (VLM sonucu, sorgu-anahtarlı)** —
+  streaming canlı render gerektirdiği için VLM tarafı cache_data yerine session_state'te;
+  Oynat tıklaması/rerun VLM'i yeniden koşmaz. `st.form` submit — keystroke başına arama yok.
+- **Güvenilirlik (streaming):** yavaş bir VLM çağrısı (spike) görünür ilerlemeyi kısa
+  süre durdurabilir; `vlm_timeout_s=30` bu takılmayı kısaltır (21s spike'lar absorbe,
+  hang'ler 30s'de kapanır → o kart rozetsiz, akış devam).
 - Prompt sıkılaştırıldı: "açıklamanın HER parçası görünmeli" → negasyon kısmi-eşleşme
   false-accept'i düzeldi (köpek/yağmur → BULUNAMADI, öznitelik bozulmadan).
 - Paralel VLM YOK (Ollama tek model, KV slot şişmesi → OOM riski). Sıralı + streaming.

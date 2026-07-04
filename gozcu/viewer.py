@@ -1,10 +1,12 @@
-"""Streamlit arayüzü — sorgu → CLIP sonucu ANINDA → VLM ile arkadan doğrula (progressive).
+"""Streamlit arayüzü — sorgu → CLIP ANINDA → VLM per-item CANLI doğrulama (streaming).
 
 Çalıştırma: python -m gozcu ui   (veya: streamlit run gozcu/viewer.py)
 
-Faz 2 async rafine (ARCHITECTURE.md §8): CLIP sonucu ~1s'de gösterilir; renk/negasyon
-sorgusunda VLM doğrulaması arkadan koşup sonucu YERİNDE günceller (elenenler expander'a).
-Cache ZORUNLU: her rerun (widget dokunuşu) VLM'i yeniden koşmasın.
+Faz 2 async rafine (ARCHITECTURE.md §8b): CLIP sonucu ~1s'de gösterilir; renk/negasyon
+sorgusunda VLM her adayı SIRAYLA doğrular ve o kartın rozetini CANLI günceller (⏳→✅/🚫).
+Bitince final reflow (yeniden sıralama + elenenler expander). Cache: session_state
+(streaming canlı render gerektirdiği için @cache_data kullanılamaz; Oynat tıklaması
+VLM'i yeniden koşmasın diye sonuç sorgu-anahtarlı saklanır).
 """
 
 import sys
@@ -18,53 +20,57 @@ import streamlit as st
 
 from gozcu.config import settings
 from gozcu.query import needs_vlm
-from gozcu.search import refine_vlm
 from gozcu.search import search as run_search
-from gozcu.search import vlm_available
+from gozcu.search import stream_verify, vlm_available
 
 st.set_page_config(page_title="Gözcü", page_icon="👁️", layout="wide")
 
 
-# ── Önbellekli arama: rerun'lar (Oynat tıklaması vb.) VLM'i yeniden koşmasın ──
 @st.cache_data(show_spinner=False)
 def clip_search(query: str, top_k: int):
-    """CLIP-only arama (hızlı, VLM yok) — anında gösterim için."""
+    """CLIP-only arama (hızlı) — anında gösterim + rerun'da yeniden koşmasın."""
     return run_search(query, top_k=top_k, use_vlm=False)
 
 
-@st.cache_data(show_spinner=False)
-def vlm_refine(query: str, top_k: int):
-    """CLIP + VLM doğrulama (yavaş, sorgu başına bir kez; sonra önbellekten)."""
-    return refine_vlm(run_search(query, top_k=top_k, use_vlm=False))
+# ── Rozet: VLM verdict'inden (streaming ⏳ / doğrulandı ✅ / elendi 🚫) ──
+def _verdict_badge(hit: dict) -> str:
+    v = hit.get("_vlm")
+    if not v:
+        return ""
+    if v.get("color_match") is True:
+        return " · ✅ renk doğru"
+    if v.get("object_present") and v["confidence"] >= settings.vlm_drop_below:
+        return f" · ✅ VLM ({v['confidence']:.0%})"
+    return " · 🚫 eşleşmedi"
 
 
-# ── Tek sonucu kart olarak çiz (VLM rozetleriyle) ──
-def render_grid(results: list[dict], reranked: bool) -> None:
+def render_grid(results: list[dict], done: int | None = None, buttons: bool = True) -> None:
+    """Sonuç kartları. done=None → final (rozetler _vlm'den, Oynat butonlu).
+    done=int → streaming: ilk `done` top-N kartı verdictli, kalan top-N ⏳, kuyruk düz."""
+    n = settings.vlm_top_n
     cols = st.columns(4)
     for i, hit in enumerate(results):
         with cols[i % 4]:
             when = datetime.fromtimestamp(hit["ts"]).strftime("%d.%m %H:%M:%S")
             st.image(hit["thumb_path"], use_container_width=True)
-            v = hit.get("_vlm")
-            badge = ""
-            if v:  # VLM doğruladı
-                if v.get("color_match") is True:
-                    badge = " · ✅ renk doğru"
-                elif v.get("object_present"):
-                    badge = f" · ✅ VLM ({v['confidence']:.0%})"
+            if done is not None and i < n:
+                badge = " · ⏳" if i >= done else _verdict_badge(hit)
+            elif done is not None:
+                badge = ""  # kuyruk (top-N dışı) — doğrulanmadı
+            else:
+                badge = _verdict_badge(hit)
             if hit.get("source") == "crop":
                 st.caption(f"**{hit['score']:.3f}** · 🎯 {hit['yolo_class']} "
                            f"({hit['yolo_conf']:.2f}) · {hit['video_id']} · {when}{badge}")
                 st.image(hit["crop_thumb"], width=90)
             else:
                 st.caption(f"**{hit['score']:.3f}** · {hit['video_id']} · {when}{badge}")
-            if st.button("▶ Oynat", key=f"play_{i}_{hit['video_id']}_{hit['frame_idx']}"):
+            if buttons and st.button("▶ Oynat", key=f"play_{i}_{hit['video_id']}_{hit['frame_idx']}"):
                 st.session_state["selected"] = hit
                 st.rerun()
 
 
-def render_outcome(outcome, title_note: str) -> None:
-    """Parse özeti + sonuç ızgarası + (VLM varsa) elenenler expander'ı."""
+def parse_info(outcome, note: str) -> None:
     parsed = outcome.parsed
     info = f'Görsel sorgu: **"{parsed.visual_text or "—"}"**'
     if parsed.ts_from is not None:
@@ -72,26 +78,27 @@ def render_outcome(outcome, title_note: str) -> None:
         info += (f' · Zaman: **"{parsed.time_phrase}"** → '
                  f"{datetime.fromtimestamp(parsed.ts_from):{fmt}}–"
                  f"{datetime.fromtimestamp(parsed.ts_to):{fmt}}")
-    if title_note:
-        info += f" · {title_note}"
+    if note:
+        info += f" · {note}"
     st.markdown(info)
     if outcome.time_filter_dropped:
         st.warning("Zaman aralığında sonuç yok — tüm arşivde arandı.")
 
+
+def render_outcome(outcome, note: str) -> None:
+    """Final görünüm: parse özeti + (bulunamadı / ızgara) + elenenler expander."""
+    parse_info(outcome, note)
     if outcome.not_found_reason:
         st.info(f"🔍 **Bulunamadı** — {outcome.not_found_reason}")
     elif not outcome.results:
         st.error("Sonuç yok. Önce `python -m gozcu index <klasör>` ile indeksleyin.")
     else:
-        # ── Seçili sonucu videoda o andan oynat ──
         sel = st.session_state.get("selected")
         if sel is not None:
             when = datetime.fromtimestamp(sel["ts"]).strftime("%d.%m.%Y %H:%M:%S")
             st.subheader(f"▶ {sel['video_id']} — {when}")
             st.video(sel["video_path"], start_time=int(sel["offset_s"]))
-        render_grid(outcome.results, outcome.vlm_applied)
-
-    # ── VLM'in elediği CLIP adayları (şeffaflık — sessizce kaybolmasın) ──
+        render_grid(outcome.results, done=None, buttons=True)
     if outcome.vlm_filtered:
         with st.expander(f"🚫 VLM elenenler ({len(outcome.vlm_filtered)}) — CLIP getirdi, "
                          f"VLM eşleştirmedi"):
@@ -115,28 +122,40 @@ with st.form("arama"):
 if submitted and query:
     st.session_state["query"] = query
     st.session_state["top_k"] = top_k
-    st.session_state.pop("selected", None)  # yeni sorgu → eski seçimi temizle
+    st.session_state.pop("selected", None)
 
 q = st.session_state.get("query")
 if q:
     k = st.session_state.get("top_k", settings.default_top_k)
     clip_outcome = clip_search(q, k)
-
-    # ── VLM tetiklenecek mi? (renk/zor-kavram + Ollama ayakta) ──
     will_verify = bool(clip_outcome.results) and needs_vlm(
         clip_outcome.parsed.visual_text or "") and vlm_available()
+    vkey = f"vlm::{q}::{k}"
+    slot = st.empty()
 
-    slot = st.empty()  # yerinde değiştirme için placeholder (container() tekrar çağrısı içeriği değiştirir)
-    if will_verify:
-        # 1) CLIP sonucunu ANINDA göster (slot'a), 2) VLM'i arkadan koş, 3) YERİNDE değiştir
-        with slot.container():
-            render_outcome(clip_outcome, "⚡ hızlı CLIP sonucu · VLM doğruluyor…")
-        est = int(min(k, settings.vlm_top_n) * 5)
-        with st.status(f"🔍 VLM ile doğrulanıyor (~{est} sn)…", expanded=False) as status:
-            refined = vlm_refine(q, k)
-            status.update(label="✅ VLM doğrulaması tamam", state="complete")
-        with slot.container():  # aynı yeri VLM sonucuyla değiştir (iki bölüm değil)
-            render_outcome(refined, "🔍 VLM ile doğrulandı")
-    else:
+    if not will_verify:
         with slot.container():
             render_outcome(clip_outcome, "")
+    elif vkey in st.session_state:  # VLM daha önce koştu → önbellekten anında
+        with slot.container():
+            render_outcome(st.session_state[vkey], "🔍 VLM ile doğrulandı")
+    else:  # ── PER-ITEM STREAMING (ilk kez) ──
+        topn = clip_outcome.results[: settings.vlm_top_n]
+        prog = st.progress(0.0, text=f"VLM 0/{len(topn)} doğrulanıyor…")
+
+        def paint(done: int) -> None:
+            with slot.container():
+                parse_info(clip_outcome, "⚡ hızlı CLIP · VLM canlı doğruluyor…")
+                render_grid(clip_outcome.results, done=done, buttons=False)
+
+        paint(0)  # hepsi ⏳
+
+        def on_verdict(i: int, hit: dict) -> None:
+            paint(i + 1)  # i. kartın rozeti dolar
+            prog.progress((i + 1) / len(topn), text=f"VLM {i + 1}/{len(topn)} doğrulandı")
+
+        refined = stream_verify(clip_outcome, on_verdict)
+        st.session_state[vkey] = refined
+        prog.empty()
+        with slot.container():  # final reflow: yeniden sıralama + elenenler + Oynat
+            render_outcome(refined, "🔍 VLM ile doğrulandı")
