@@ -63,5 +63,14 @@ class Settings(BaseSettings):
     # Yalnız intent=="scene"; nesne-niyeti nötr. z-skoru: skor-boşluğundan kalibre edildi.
     scene_boost_lambda: float = 1.0
 
+    # ── Faz 2: VLM doğrulayıcı (retrieve-then-verify, ARCHITECTURE.md §8) ──
+    vlm_model: str = "qwen3-vl:2b"        # 1.9GB — CLIP ile eşzamanlı sığar (8GB kart)
+    vlm_url: str = "http://localhost:11434/api/chat"
+    vlm_keep_alive: str = "30m"           # her sorgu arası model boşaltma (swap thrash) önle
+    vlm_top_n: int = 8                    # yalnız top-N aday doğrulanır (latency)
+    vlm_drop_below: float = 0.3           # negasyon: eşleşme-güveni bu altındaysa düşür (absent)
+    vlm_beta: float = 0.5                 # öznitelik rerank ağırlığı (skor-boşluğundan kalibre)
+    vlm_timeout_s: float = 20.0
+
 
 settings = Settings()

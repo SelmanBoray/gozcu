@@ -1,0 +1,53 @@
+# Faz 2 VLM eval — CLIP'in çözemediği kovalar. use_vlm=False vs True (eşleştirilmiş McNemar).
+# Pre-registration: sorgular sonuca bakmadan yazıldı.
+#
+# Kovalar (AI Engineer S5):
+#   negation — konsept korpusta yok, VLM top sonuçları REDDETMELİ (false-accept ölç)
+#   attribute — renk, VLM DOĞRULAMALI (renk-precision ölç; VLM renkte zayıf olabilir → ölçmeden güvenme)
+#   positive_ctrl — geçerli eşleşme, VLM yanlış-REDDETMEMELİ (false-reject ölç)
+
+# ═══ NEGASYON (VLM reddetmeli — kapının çözemediği öznitelik/hava/tespit-dışı) ═══
+- id: f2_neg_kopek
+  query: "köpek gezdiren adam"
+  bucket: negation
+  concept: dog                 # korpusta köpek yok → VLM object_present=false demeli
+- id: f2_neg_yagmur
+  query: "yağmurda şemsiyeli insanlar"
+  bucket: negation
+  concept: rain+umbrella
+- id: f2_neg_kar
+  query: "karla kaplı sokak"
+  bucket: negation
+  concept: snow
+
+# ═══ ÖZNİTELİK (VLM renk doğrulamalı — CLIP renk garantilemiyor) ═══
+- id: f2_attr_siyah_suv
+  query: "siyah SUV araç"
+  bucket: attribute
+  color: black
+- id: f2_attr_mavi_kamyonet
+  query: "mavi kamyonet"
+  bucket: attribute
+  color: blue                  # KRİTİK: VLM mavi/cyan'da zayıf (~%56 F1) — precision ölç
+- id: f2_attr_beyaz_arac
+  query: "beyaz renkli araba"
+  bucket: attribute
+  color: white
+- id: f2_attr_kirmizi_arac
+  query: "kırmızı araba"
+  bucket: attribute
+  color: red
+
+# ═══ POZİTİF KONTROL (VLM yanlış-reddetmemeli — regresyon denetimi) ═══
+- id: f2_ctrl_otobus
+  query: "otobüs"
+  bucket: positive_ctrl
+  concept: bus                 # ucf_trafik'te var → VLM reddetmemeli
+- id: f2_ctrl_yuruyen_insan
+  query: "yürüyen insan"
+  bucket: positive_ctrl
+  concept: walking person
+- id: f2_ctrl_kamyon
+  query: "kamyon"
+  bucket: positive_ctrl
+  concept: truck

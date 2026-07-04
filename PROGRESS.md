@@ -1,5 +1,22 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 4 Temmuz 2026 (gece) — Faz 2 VLM doğrulayıcı: negasyon çözüldü, retrieve-then-verify
+
+- AI Engineer tasarımı: `qwen3-vl:2b` (Ollama, 1.9GB — CLIP ile eşzamanlı sığan tek
+  sağlam seçenek), koşullu (yalnız renk/zor-kavram sorgusu), tam-çözünürlükte doğrula.
+- **Kurulan hat:** Ollama v0.31.1 kuruldu (winget) + qwen3-vl:2b (100% GPU, keep_alive
+  30dk). Modüller: `recrop.py` (orijinalden bbox yüksek-res kırpma — 36px thumb yetersiz),
+  `query.translate_visual` (TR→EN, VLM'in Türkçesine güvenme), `verifier.py` (yapılandırılmış
+  JSON verdict), `search._apply_vlm` (negasyon=filtre / öznitelik=rerank).
+- **Doğrulandı (net görüntüde VLM güçlü):** beyaz araba renk=True conf=1.0, aynı arabaya
+  "siyah"→renk=False; telefonlu sürücü davranış conf=1.0; köpek→False.
+- **Uçtan uca:** "köpek gezdiren adam" → **BULUNAMADI** (VLM tüm adayları reddetti — CLIP+kapının
+  çözemediği negatif örtüşme çözüldü). "otobüs"→VLM tetiklemez (0s, vergi yok).
+- **Yol boyu düzeltilen hata:** VLM reddedince conf=0.0 (P(present)) → filtre iki moda ayrıldı:
+  negasyon (düşük-conf düşür, hepsi düşerse bulunamadı) / öznitelik (renk rerank, drop yok).
+- Latency ~4s/görüntü → koşullu tetik. LLM sorgu-ayrıştırıcı ERTELENDİ (VRAM). Detay: ARCHITECTURE.md §8
+- **Bekliyor:** renk-precision gözle doğrulama (VLM mavi/cyan'da zayıf olabilir) + tam eval.
+
 ## 4 Temmuz 2026 (gece) — Olgu B çözüldü: sahne-niyetli frame boost (durum-eki tabanlı)
 
 - AI Engineer tasarımı: niyet sinyali **durum ekiyle** (case morphology), pozisyonla değil —

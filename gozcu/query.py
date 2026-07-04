@@ -214,6 +214,78 @@ def _classify_token(tok: str) -> tuple[str | None, bool]:
     return (None, False)
 
 
+# ── Türkçe → İngilizce görsel-kelime çevirisi (Faz 2: VLM'in Türkçesine güvenme) ──
+# Küçük VLM İngilizce talimatı çok daha güvenilir takip eder. Deterministik, +0 VRAM,
+# tam lokal (KVKK). Kök prefix eşleşir (çekim ekine dayanıklı). Detay: ARCHITECTURE.md §8
+
+_TR_EN: list[tuple[str, str]] = [
+    # nesneler
+    ("insan", "person"), ("adam", "man"), ("kadin", "woman"), ("cocuk", "child"),
+    ("kisi", "person"), ("yaya", "pedestrian"), ("surucu", "driver"), ("bebek", "baby"),
+    ("araba", "car"), ("otomobil", "car"), ("kamyonet", "pickup truck"), ("kamyon", "truck"),
+    ("otobus", "bus"), ("minibus", "minibus"), ("motosiklet", "motorcycle"),
+    ("bisiklet", "bicycle"), ("kopek", "dog"), ("kedi", "cat"), ("suv", "SUV"),
+    # renkler
+    ("siyah", "black"), ("beyaz", "white"), ("mavi", "blue"), ("kirmizi", "red"),
+    ("sari", "yellow"), ("yesil", "green"), ("gri", "gray"), ("gumus", "silver"),
+    ("koyu", "dark"), ("turuncu", "orange"), ("mor", "purple"), ("kahverengi", "brown"),
+    ("pembe", "pink"), ("lacivert", "navy blue"),
+    # sahne / yer
+    ("otopark", "parking lot"), ("garaj", "garage"), ("cadde", "street"), ("sokak", "street"),
+    ("kavsak", "intersection"), ("kampus", "campus"), ("otoyol", "highway"), ("yol", "road"),
+    ("kaldirim", "sidewalk"), ("meydan", "square"), ("bina", "building"), ("durak", "bus stop"),
+    # hava / durum / eylem
+    ("gece", "at night"), ("gunduz", "during day"), ("yagmur", "rain"), ("kar", "snow"),
+    ("semsiye", "umbrella"), ("trafik", "traffic"), ("yuruyen", "walking"), ("kosan", "running"),
+    ("giden", "moving"), ("duran", "stopped"), ("park", "parked"), ("telefon", "phone"),
+    ("bosaltan", "unloading"), ("bekleyen", "waiting"), ("arac", "vehicle"), ("tasit", "vehicle"),
+    ("gezdiren", "walking"), ("suren", "riding"), ("binen", "boarding"), ("konus", "talking"),
+    ("kapli", "covered"), ("tasiyan", "carrying"), ("iten", "pushing"), ("kosan", "running"),
+]
+# Anlam taşımayan bağlaçlar (çeviriden atılır)
+_TR_SKIP = {"ve", "ile", "bir", "bu", "su", "cok", "dolu", "olan", "halindeki", "arasinda",
+            "gecen", "giren", "cikan", "ustunde", "yaninda", "onunde", "arkasinda", "renkli"}
+
+
+# Renk kökleri (VLM color_match tetikler) ve VLM'in çözdüğü "zor" kavramlar
+# (YOLO sınıfı olmayan nesne / hava / öznitelik — CLIP tek başına garantilemiyor)
+_COLOR_ROOTS = ("siyah", "beyaz", "mavi", "kirmizi", "sari", "yesil", "gri", "gumus",
+                "koyu", "turuncu", "mor", "kahverengi", "pembe", "lacivert")
+_HARD_CONCEPT_ROOTS = ("kopek", "kedi", "yagmur", "kar", "semsiye", "semsiy")
+
+
+def has_color(visual_text: str) -> bool:
+    """Sorguda renk öznitelik kelimesi var mı? (VLM'de color_match sorulur)"""
+    toks = _fold(visual_text).split()
+    return any(t.startswith(_COLOR_ROOTS) for t in toks)
+
+
+def needs_vlm(visual_text: str) -> bool:
+    """VLM doğrulaması tetiklenmeli mi? Yalnız CLIP'in zorlandığı yer: renk + zor kavram.
+
+    Nesne/sahne sorguları zaten yüksek recall → VLM vergisi ödenmez (koşullu, AI Engineer S3).
+    """
+    toks = _fold(visual_text).split()
+    return any(t.startswith(_COLOR_ROOTS) or t.startswith(_HARD_CONCEPT_ROOTS) for t in toks)
+
+
+def translate_visual(visual_text: str) -> str:
+    """Türkçe görsel ifadeyi İngilizce kelime dizisine çevir (VLM prompt'u için).
+
+    Kelime bazlı, kök-prefix eşleşmeli; bilinmeyen kelime aynen geçer (isim vb.).
+    Gramer değil anahtar-kelime hedefli — VLM'e 'şunları içeriyor mu' diye sorulacak.
+    """
+    out: list[str] = []
+    for raw in _fold(visual_text).split():
+        tok = raw.strip(".,;:!?()[]\"'")
+        if not tok or tok in _TR_SKIP:
+            continue
+        en = next((e for root, e in _TR_EN if tok.startswith(root)), None)
+        out.append(en if en is not None else tok)
+    # tekrarları koru (sıra önemli), boşsa orijinali döndür
+    return " ".join(out) if out else visual_text
+
+
 def scene_or_object_intent(visual_text: str) -> str:
     """Sorgu niyeti: 'scene' | 'object' | 'neutral'.
 

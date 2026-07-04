@@ -175,3 +175,30 @@ yumuşak: güçlü kırpık cosine'i hâlâ kazanır, meşru cross-video relevan
   nesne+noobj kontroller regres etmiyor.
 - **Sınır:** Olgu B'nin kare-açlığı bileşeni (statik lot=1 kare) boost'un işi değil —
   ayrı iş (daha uzun segment). Detay: `experiments/2026-07-04_olgu_b_frame_boost/`
+
+## 8. Faz 2 — VLM doğrulayıcı (retrieve-then-verify, 4 Temmuz 2026)
+
+Eval'in CLIP ile kapatılamayan açıkları: negasyon örtüşmesi (köpek/yağmur/kar — kapının
+çözemediği hava/öznitelik/tespit-dışı nesne) ve renk doğrulama (siyah SUV, mavi kamyonet).
+Çözüm: CLIP top-N adayı, küçük bir VLM ile TAM ÇÖZÜNÜRLÜKTE doğrulanır.
+
+- **Model: `qwen3-vl:2b`** (Ollama, 1.9GB Q4_K_M). 8GB kartta CLIP (~2GB) ile eşzamanlı
+  sığan tek sağlam seçenek (qwen2.5vl:3b Ollama'da CPU'ya düşüyor, 4b 6GB ister).
+  `keep_alive:30m` — swap thrash önle.
+- **VLM'in Türkçesine güvenilmez** → sorgunun görsel kelimeleri deterministik sözlükle
+  İngilizceye çevrilir (`query.translate_visual`; mavi→blue, köpek→dog). +0 VRAM, lokal.
+- **Tam çözünürlük:** kırpık thumb 36px olabiliyor (renk/detay yok) → orijinal videodan
+  bbox ile yeniden kırpılır (`recrop.py`). Renk/detay thumbnail'de kaybolur.
+- **Koşullu tetik:** yalnız renk/zor-kavram sorgusu (`query.needs_vlm`) + Ollama ayakta.
+  Nesne/sahne sorguları zaten yüksek recall → VLM vergisi ödenmez.
+- **Yapılandırılmış verdict** (yes-bias'a karşı): `{object_present, color_match, confidence}`,
+  reddetme-yanlı İngilizce prompt (`format:json`, temp 0).
+- **Füzyon (VLM CLIP'i ezmez, düzeltir):** yüksek-güvenli red (`object_present=false &
+  conf>τ`) → düşür; öznitelik → sınırlı rerank `z(cos) + β·conf·[match]`. VLM hatası →
+  dokunma (CLIP sıralaması korunur). Ayarlar: `vlm_top_n`, `vlm_confidence_tau`, `vlm_beta`.
+- **Renk'e körü körüne güvenme:** VLM'ler mavi/cyan'da zayıf (~%56 F1) → önce renk-precision
+  ölçülür; düşükse renk advisory-with-confidence kalır, hard-filtre edilmez.
+- **LLM sorgu-ayrıştırıcı (Qwen3-4B) ERTELENDİ:** kural-bazlı çalışıyor + 4B+2B+CLIP
+  aynı VRAM'e sığmaz.
+- Ölçüm (bekliyor): negasyon false-accept oranı + öznitelik renk-precision, use_vlm
+  False vs True eşleştirilmiş McNemar. `eval/queries_faz2.yaml`, `eval/faz2_eval.py`.
