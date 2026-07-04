@@ -65,8 +65,11 @@ def _dedup_and_group(hits: list[dict], top_k: int) -> list[dict]:
     return kept
 
 
-def search(raw_query: str, top_k: int | None = None) -> SearchOutcome:
-    """Türkçe sorgu → sıralı eşleşme listesi."""
+def search(raw_query: str, top_k: int | None = None, source: str | None = None) -> SearchOutcome:
+    """Türkçe sorgu → sıralı eşleşme listesi.
+
+    source: "frame"|"crop"|None — kaynak filtresi (eval ablation'ı; None → prod hattı).
+    """
     top_k = top_k or settings.default_top_k
     fetch_k = top_k * settings.search_overfetch  # tekilleştirme payı
 
@@ -81,13 +84,15 @@ def search(raw_query: str, top_k: int | None = None) -> SearchOutcome:
     results = get_store().search(
         vector, top_k=fetch_k,
         ts_from=parsed.ts_from, ts_to=parsed.ts_to,
-        camera_id=parsed.camera_id,
+        camera_id=parsed.camera_id, source=source,
     )
 
     # ── 4. Zaman filtresi hiçbir şey bulamadıysa filtresiz tekrar dene ──
     time_filter_dropped = False
     if not results and parsed.ts_from is not None:
-        results = get_store().search(vector, top_k=fetch_k, camera_id=parsed.camera_id)
+        results = get_store().search(
+            vector, top_k=fetch_k, camera_id=parsed.camera_id, source=source
+        )
         time_filter_dropped = True
 
     # ── 5. Kare tekilleştirme + zaman kümeleme ──

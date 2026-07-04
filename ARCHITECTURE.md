@@ -105,3 +105,25 @@ embedlenip AYNI koleksiyona `source:"crop"` olarak yazılır — ana kareye işa
    YOLO tespit tabanının da altında (VIRAT kampüs segmenti) — gerekirse SAHI döşeme.
 2. **Zaman damgası gerçeği** — DVR dosya adları/mtimes yalan söyler; taban zaman yanlışsa her "dün gece" cevabı yanlış. Erken doğrula: görüntüye gömülü OSD saatini OCR ile çapraz kontrol et.
 3. **Eval seti yoksa karar da yok** — 1. haftada test videolarından **30–50 Türkçe sorgu → doğru kare** çifti oluştur; her model/eşik kararı (SigLIP2 yedeğine geçiş dahil) buna karşı ölçülür. Ayrıca: embedding ve küçük resimler de KVKK kapsamında kişisel veridir — saklama/silme politikası ilk günden tasarlanır.
+   **→ 4 Temmuz 2026: KAPATILDI.** 22 sorgu tiered eval (`eval/queries.yaml`, dondurulmuş),
+   koşucu `eval/run_eval.py`. Metrik etiket tipine eşlendi: sınıf/sahne → video-düzeyi
+   Recall@k, ubik/davranış → gözle doğrulanmış golden-frame, renk → advisory (recall
+   dışı). Kare vs kırpık ayrı koşulur (`source` filtresi eklendi). İlk ölçüm:
+   skorlanabilir R@5=1.0, golden R@1=1.0, **Faz 1.5 marjini +0.333**. **Açık bulgu:
+   negatif ayrımcılık çöktü (min-poz 0.282 < max-neg 0.36) — güvenilir "bulunamadı"
+   sinyali yok, Faz 2 VLM doğrulayıcı gerekçesi.** Detay: `experiments/2026-07-04_eval/`.
+
+### 6b. Eval metodolojisi (4 Temmuz 2026)
+
+| Sorgu tipi (`gt_type`) | Metrik | Neden |
+|---|---|---|
+| `class` (otobüs, motosiklet) | video-düzeyi Recall@k | kesin sınıf sayımından türetilir, `|relevant|≤2-3` |
+| `scene` (gece, kapalı otopark) | video-düzeyi Recall@k | sahne-özel, otomatik doğrulanabilir |
+| `golden` (telefonlu sürücü, yürüyen insan) | tek kareye Recall@1/MRR | ubik sınıf video-düzeyinde triviyal; kare gözle doğrulandı |
+| `advisory` (siyah SUV, mavi kamyonet) | yalnız top-1 denetim | renk GT'si otomatik doğrulanamaz — recall'a girmez |
+| `zaman` (dün gece, son 3 saat) | parse + geri düşüş | zaman ayrıştırma sınır davranışı |
+| `negatif` (kırmızı bisiklet, kar) | ayrımcılık (skor dağılımı) | mutlak eşik yok; CLIP kosinüsü sorgular arası kalibre değil |
+
+Kurallar: set sonuca bakmadan **dondurulur** (pre-registration); her agregata **Wilson
+%95 CI** basılır (n≈12 → gösterge, benchmark değil); değişiklikler sabit sette
+**eşleştirilmiş (McNemar)** karşılaştırılır, bağımsız oran değil.

@@ -111,8 +111,13 @@ class FrameStore:
         ts_from: float | None = None,
         ts_to: float | None = None,
         camera_id: str | None = None,
+        source: str | None = None,
     ) -> list[dict]:
-        """Vektör araması + opsiyonel zaman aralığı / kamera filtresi."""
+        """Vektör araması + opsiyonel zaman aralığı / kamera / kaynak filtresi.
+
+        source: "frame" veya "crop" — yalnız kare ya da yalnız kırpık aramak için
+        (eval ablation'ı; Faz 1.5'in marjinal katkısını izole eder). None → ikisi de.
+        """
         # ── Filtre kurulumu ──
         must: list[models.Condition] = []
         if ts_from is not None or ts_to is not None:
@@ -122,6 +127,10 @@ class FrameStore:
         if camera_id is not None:
             must.append(
                 models.FieldCondition(key="camera_id", match=models.MatchValue(value=camera_id))
+            )
+        if source is not None:
+            must.append(
+                models.FieldCondition(key="source", match=models.MatchValue(value=source))
             )
         query_filter = models.Filter(must=must) if must else None
 

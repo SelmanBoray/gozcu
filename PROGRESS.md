@@ -1,5 +1,28 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 4 Temmuz 2026 — Eval seti kuruldu (Risk 3 kapandı) + Faz 1.5'in değeri ölçüldü
+
+- AI Engineer eval tasarımını inceledi, naif "video-düzeyi recall"i 3 yerde kırdı:
+  golden-frame ubik/davranış için birincil; renk GT'si otomatik doğrulanamaz →
+  advisory; kare vs kırpık ayrı koşulmalı. Buna göre 22 sorgu, tiered `queries.yaml`
+  **dondurularak** kuruldu (golden frame_idx'ler küçük resim GÖZLE doğrulandı).
+- `store.search`/`search`'e `source` filtresi eklendi (frame/crop ablation için).
+  `eval/run_eval.py`: 3 yönlü koşu, Wilson CI, golden fail_attribution, Gap 1 denetimi.
+- **Kanıt — Faz 1.5'in değeri artık bir sayı:** R@5 yalnız-kare 0.667 → birleşik
+  **1.0** = **+0.333 marjinal katkı** (yalnız-kırpık 0.917). Kırpık nesne sorgularını
+  taşıyor. Golden R@1=1.0 (3 gözle-doğrulanmış kare de rank-1).
+- **Boşluk 1 çözüldü:** "gece" embed edildi (→ucf_gece rank-1), "dün gece" parse
+  edildi, "son 3 saat" filtresiz geri düştü. Sınır davranışı doğru.
+- **KRİTİK DÜRÜST SINIR:** negatif ayrımcılık çöktü — min-pozitif 0.282 < max-negatif
+  0.36 ("köpek gezdiren **adam**" → insan'a eşleşti). **Güvenilir "bulunamadı" sinyali
+  yok.** Faz 2 VLM doğrulayıcının somut gerekçesi. Kısa vade: yolo_class sertlik kapısı.
+- Dürüst çerçeve: video-düzeyi R@5=1.0 şişmiş (4 sahne görsel olarak çok farklı);
+  gerçek zorluk golden pinpoint + negatif ayrımda. n=12 → CI [0.757, 1.0], gösterge.
+- Detay: `experiments/2026-07-04_eval/deney_notu.md`
+
+**Sıradaki adım:** "Bulunamadı" mekanizması (yolo_class sertlik kapısı / VLM) — en
+yüksek öncelikli açık. Ardından korpus büyütme (benzer sahnelerle gerçek ayrım ölçümü).
+
 ## 3 Temmuz 2026 (gece) — Faz 1.5 tamamlandı: YOLO kırpık embedding sulanmayı çözdü
 
 - AI Engineer tasarım danışması → yolo11m@1280, düşük güven eşiği, %20 pay + kare

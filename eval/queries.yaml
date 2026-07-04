@@ -1,0 +1,171 @@
+# Gözcü eval sorgu seti — DONDURULDU (pre-registration, AI Engineer incelemesi sonrası).
+# Sorgular sonuçlara bakılmadan ground-truth'tan türetildi; golden frame_idx'ler
+# yalnızca küçük resim GÖZLE doğrulanarak etiketlendi (skora güvenilmedi).
+#
+# gt_type — metriği etiket tipine eşler (AI Engineer S1/S3):
+#   class  : sınıf-özel, video-düzeyi skorlanabilir (kesin sınıf sayımından türetilir)
+#   scene  : sahne-özel, video-düzeyi skorlanabilir
+#   golden : tek doğru kare gözle doğrulandı → Recall@1/MRR birincil metrik
+#   advisory: renk/öznitelik — video-düzeyi GT otomatik doğrulanamaz (Boşluk 2),
+#             recall'a GİRMEZ, yalnızca top-1 gözle denetim için raporlanır
+#   zaman  : parse_query zaman ayrıştırma + filtresiz geri düşüş davranışını test eder
+#   negatif: korpusta yok → ayrımcılık testi (recall'a girmez, S4)
+#
+# scorable_recall: false olan girişler agregat recall'a katılmaz.
+# |relevant_videos| ≤ 2 ideal (AI Engineer S1: büyük relevant küme ayrımı düşürür).
+
+# ═══════════ TIER 1 — Ayrımcı video-düzeyi (SKORLANABILIR: class/scene) ═══════════
+- id: obj_otobus
+  query: "otobüs"
+  gt_type: class
+  scorable_recall: true
+  relevant_videos: [ucf_trafik]                 # otobüs SADECE ucf_trafik (516 kırpık)
+  category: nesne
+- id: obj_motosiklet
+  query: "motosiklet"
+  gt_type: class
+  scorable_recall: true
+  relevant_videos: [video_1, video_2, video_3]  # motosiklet SADECE Teknofest
+  category: nesne
+- id: obj_kamyon
+  query: "kamyon"
+  gt_type: class
+  scorable_recall: true
+  relevant_videos: [ucf_trafik, VIRAT_otopark, VIRAT_kampus]   # kamyon ubik değil
+  category: nesne
+  notes: "|relevant|=3 → taban R@1≈0.43, zayıf ayrım; regresyon izlemede tut"
+- id: scene_gece
+  query: "gece çekilmiş kamera görüntüsü"
+  gt_type: scene
+  scorable_recall: true
+  relevant_videos: [ucf_gece]                   # gece olan TEK video
+  category: sahne
+  notes: "Boşluk 1: çıplak 'gece' EMBED edilmeli (parse'a takılmamalı)"
+- id: scene_karanlik_yol
+  query: "karanlıkta ilerleyen araçlar"
+  gt_type: scene
+  scorable_recall: true
+  relevant_videos: [ucf_gece]
+  category: sahne
+- id: scene_kapali_otopark
+  query: "kapalı otopark katı"
+  gt_type: scene
+  scorable_recall: true
+  relevant_videos: [video_1, video_2, video_3]  # kapalı garaj SADECE Teknofest
+  category: sahne
+- id: scene_yogun_trafik
+  query: "yoğun trafik akışı"
+  gt_type: scene
+  scorable_recall: true
+  relevant_videos: [ucf_trafik]
+  category: sahne
+- id: scene_acik_otopark
+  query: "açık hava otopark alanı"
+  gt_type: scene
+  scorable_recall: true
+  relevant_videos: [VIRAT_otopark, VIRAT_kampus]
+  category: sahne
+- id: beh_uzakta_yuruyen
+  query: "uzakta tek başına yürüyen insan"
+  gt_type: scene
+  scorable_recall: true
+  relevant_videos: [VIRAT_otopark, ucf_gece]    # |relevant|=2, önceden doğrulandı
+  category: davranis
+
+# ═══════════ TIER 2 — Golden-frame (Recall@1/MRR birincil, gözle doğrulandı) ═══════════
+- id: gold_telefon_surucu
+  query: "telefonla konuşan sürücü"
+  gt_type: golden
+  scorable_recall: true
+  relevant_videos: [video_1, video_2, video_3]
+  golden_frame: {video_id: video_2, frame_idx: 100}   # sürücü telefonu kulağında — doğrulandı
+  category: davranis
+- id: gold_yuruyen_insan
+  query: "yürüyen insan"
+  gt_type: golden
+  scorable_recall: true
+  relevant_videos: [VIRAT_otopark, ucf_gece, ucf_trafik, video_1, video_2, video_3]
+  golden_frame: {video_id: VIRAT_otopark, frame_idx: 180}   # asfaltta tek yürüyen — doğrulandı
+  category: nesne
+  notes: "insan ubik → video-düzeyi triviyal; golden zorunlu (AI Engineer S1)"
+- id: gold_parkta_yuruyen
+  query: "park halindeki arabaların arasında yürüyen kişi"
+  gt_type: golden
+  scorable_recall: true
+  relevant_videos: [VIRAT_otopark]
+  golden_frame: {video_id: VIRAT_otopark, frame_idx: 675}   # araç yanında kişi — doğrulandı
+  category: davranis
+
+# ═══════════ TIER 3 — Advisory (renk/öznitelik: recall'a GİRMEZ, top-1 denetim) ═══════════
+- id: adv_siyah_suv
+  query: "siyah SUV araç"
+  gt_type: advisory
+  scorable_recall: false
+  relevant_videos: [video_1, video_2, video_3]  # Togg; ama VIRAT'ta da koyu SUV var
+  category: oznitelik
+  notes: "Boşluk 2: renk GT'si otomatik doğrulanamaz; VIRAT_otopark koyu SUV meşru eşleşme"
+- id: adv_mavi_kamyonet
+  query: "mavi kamyonet"
+  gt_type: advisory
+  scorable_recall: false
+  relevant_videos: [ucf_trafik]
+  category: oznitelik
+  notes: "önceki testte birebir isabetti; yine de renk GT'si otomatik değil"
+- id: adv_beyaz_arac
+  query: "beyaz renkli araba"
+  gt_type: advisory
+  scorable_recall: false
+  relevant_videos: [VIRAT_otopark, ucf_trafik, VIRAT_kampus]
+  category: oznitelik
+- id: adv_direksiyon
+  query: "direksiyon başındaki sürücü"
+  gt_type: advisory
+  scorable_recall: false
+  relevant_videos: [video_1, video_2, video_3]
+  category: davranis
+
+# ═══════════ TIER 4 — Zaman ayrıştırma (parse + geri düşüş davranışı) ═══════════
+- id: time_dun_gece
+  query: "dün gece otoparka giren araç"
+  gt_type: zaman
+  scorable_recall: false
+  relevant_videos: [video_1, video_2, video_3, VIRAT_otopark]
+  category: zaman
+  notes: "Boşluk 1: 'dün gece' PARSE edilmeli (ts filtresi); veri aralık dışı → filtresiz geri düşüş"
+- id: time_son_saat
+  query: "son 3 saatte geçen kamyon"
+  gt_type: zaman
+  scorable_recall: false
+  relevant_videos: [ucf_trafik, VIRAT_otopark]
+  category: zaman
+  notes: "'son 3 saat' parse + geri düşüş"
+
+# ═══════════ TIER 5 — Negatif / ayrımcılık (korpusta yok, recall'a GİRMEZ, S4) ═══════════
+- id: neg_bisiklet
+  query: "kırmızı bisiklet süren çocuk"
+  gt_type: negatif
+  scorable_recall: false
+  neg_type: class_absent          # bisiklet sınıfı korpusta hiç yok
+  relevant_videos: []
+  category: negatif
+- id: neg_kopek
+  query: "köpek gezdiren adam"
+  gt_type: negatif
+  scorable_recall: false
+  neg_type: class_absent
+  relevant_videos: []
+  category: negatif
+- id: neg_yagmur
+  query: "yağmurda şemsiyeli insanlar"
+  gt_type: negatif
+  scorable_recall: false
+  neg_type: attribute_absent      # insan var ama yağmur/şemsiye yok — daha zor
+  relevant_videos: []
+  category: negatif
+- id: neg_kar
+  query: "karla kaplı sokak"
+  gt_type: negatif
+  scorable_recall: false
+  neg_type: attribute_absent
+  relevant_videos: []
+  category: negatif

@@ -20,8 +20,16 @@ Gözcü: güvenlik kamerası arşivinde Türkçe doğal dil arama motoru. Lokal-
 
 ```
 gozcu/          → Python paketi (pipeline modülleri)
-data/           → test videoları (git'e girmez)
-experiments/    → test çıktıları (git'e girmez)
+eval/           → dondurulmuş sorgu seti (queries.yaml) + koşucu (run_eval.py)
+data/           → test videoları + indeks (git'e girmez)
+experiments/    → test çıktıları (deney notları git'e girer, görüntü girmez)
 ARCHITECTURE.md → mimari kararlar ve gerekçeleri
 PROGRESS.md     → proje günlüğü
 ```
+
+## Eval disiplini
+
+Retrieval kalitesi `eval/queries.yaml` (dondurulmuş, pre-registration) üzerinden
+`eval/run_eval.py` ile ölçülür. Metodoloji: ARCHITECTURE.md §6b. Kurallar: sorgu
+seti sonuca bakmadan dondurulur; golden frame_idx'ler küçük resim gözle doğrulanır;
+her model/eşik değişikliği bu sabit sette eşleştirilmiş (McNemar) karşılaştırılır.
