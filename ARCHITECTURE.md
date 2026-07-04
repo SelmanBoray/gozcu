@@ -149,3 +149,29 @@ embedlenip AYNI koleksiyona `source:"crop"` olarak yazılır — ana kareye işa
 Kurallar: set sonuca bakmadan **dondurulur** (pre-registration); her agregata **Wilson
 %95 CI** basılır (n≈12 → gösterge, benchmark değil); değişiklikler sabit sette
 **eşleştirilmiş (McNemar)** karşılaştırılır, bağımsız oran değil.
+
+## 7. Niyet-koşullu sıralama (Olgu B çözümü — 4 Temmuz 2026)
+
+Korpus büyütme v2'nin bulduğu Olgu B: sahne sorgusu bir NESNE KELİMESİ içerince
+("araçlarla dolu açık otopark"), o nesnenin kırpıkları sele dönüp doğru sahne karesini
+gömüyor. "Skor ofseti yok → kendi kendini düzeltir" varsayımının sınırı.
+
+**Niyet sinyali = durum eki (case morphology), pozisyon değil** (`query.scene_or_object_intent`).
+Türkçe serbest sözcük dizilişli ama çekim eki role'ü kodlar: -DA/-DAn/-lA/-In ekli isim
+adjunct'tır, head = son NOMİNATİF içerik ismi. "araçlar**LA** ... otopark"→otopark=head=sahne;
+"otopark**TA** ... insan"→insan=head=nesne. Sahne-niyeti yalnız head sahne kelimesiyse
+(sadece geçmesiyle değil — "otopark bariyeri" tuzağı). Sınıflandırıcı doğruluğu ayrı
+raporlanır (12/12 dev).
+
+**Mekanizma = z-normalize yumuşak frame-boost, YALNIZ sahne-niyetinde** (`search._intent_rerank`):
+overfetch havuzunda `_rank = z(cos) + λ·[source==frame]`, `λ=1.0` (`scene_boost_lambda`).
+Nesne-niyeti nötr (Faz 1.5 kazanımı korunur). Hard filtre DEĞİL (recall uçurumu riski) —
+yumuşak: güçlü kırpık cosine'i hâlâ kazanır, meşru cross-video relevans ezilmez.
+
+- **λ kalibrasyonu:** metrikten değil skor-boşluğundan; robustluk bandı (λ/2, λ, 1.5λ)
+  boyunca kazanç monoton; dev'de seçilip kilitli sette doğrulandı.
+- **Ölçülen etki:** dev kırpık-seli vakaları düzeliyor (kamyonlu_otopark kare sırası
+  10→4, garaj 6→3; 3 iyileşme 0 regresyon). v1 kilitli **sıfır regresyon** (R@5=1.0 sabit),
+  nesne+noobj kontroller regres etmiyor.
+- **Sınır:** Olgu B'nin kare-açlığı bileşeni (statik lot=1 kare) boost'un işi değil —
+  ayrı iş (daha uzun segment). Detay: `experiments/2026-07-04_olgu_b_frame_boost/`

@@ -1,5 +1,22 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 4 Temmuz 2026 (gece) — Olgu B çözüldü: sahne-niyetli frame boost (durum-eki tabanlı)
+
+- AI Engineer tasarımı: niyet sinyali **durum ekiyle** (case morphology), pozisyonla değil —
+  -DA/-lA/-In ekli isim adjunct, head = son nominatif isim. "araçlarLA...otopark"→sahne,
+  "otoparkTA...insan"→nesne. `query.scene_or_object_intent`. Sınıflandırıcı 12/12 dev.
+- Mekanizma: **z-normalize yumuşak frame-boost, yalnız sahne-niyetinde** (`_intent_rerank`,
+  λ=1.0). Nesne-niyeti nötr (Faz 1.5 korunur). Hard filtre değil — cross-video relevans ezilmez.
+- λ skor-boşluğundan kalibre, dev'de seçilip kilitli sette doğrulandı (dev/kilitli ayrı).
+- **Ölçüldü:** dev kırpık-seli düzeliyor (kamyonlu_otopark sahne-kare sırası 10→4, garaj 6→3;
+  3 iyileşme, 0 regresyon). **v1 kilitli SIFIR regresyon** (R@5=1.0 sabit), nesne+noobj
+  kontroller regres etmiyor.
+- **Dürüst nüans:** v2_gold_meva_otopark düzelmedi (8→6) çünkü Olgu B'nin ikinci bileşeni
+  kare-açlığı (meva_okul2 statik lot=1 kare) + VIRAT_otopark meşru daha iyi cevap. Boost
+  cross-video relevansı doğru şekilde EZMİYOR; kare-açlığı ayrı iş. `experiments/2026-07-04_olgu_b_frame_boost/`
+
+**Sıradaki adım:** statik lotlara daha uzun MEVA segmenti (kare-açlığı) ya da Faz 2 VLM.
+
 ## 4 Temmuz 2026 (akşam) — Korpus büyütüldü (MEVA): eval artık ayrımcı, 2 gerçek olgu çıktı
 
 - AI Engineer kaynak seçti: **MEVA KF1** (VIRAT halefi, S3 public, HTTP Range destekli —

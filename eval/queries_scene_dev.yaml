@@ -1,0 +1,76 @@
+# DEV bataryası — Olgu B (sahne karesi kırpık selinde gömülüyor) için λ kalibrasyonu.
+# KİLİTLİ DEĞİL — λ burada seçilir, v1/v2'de DOĞRULANIR (AI Engineer S4: dev/kilitli ayrı).
+# Pre-registration: sorgular sonuca bakılmadan, doğal ifadelerle yazıldı.
+#
+# Metrik: "sahne-karesi sırası" = top-k'da (video_id ∈ relevant VE source==frame) ilk hit.
+#   Frame-düzeyi kritik (S4 tuzak 3): video-düzeyi GT bu etkiyi gizler (Olgu B'de video
+#   zaten top-1'di, arıza kare-vs-kırpık'taydı).
+#
+# Arıza modu kapsaması (S4): farklı sahne kelimesi + farklı sel-nesnesi + nesne-kelimesiz
+# sahne (regres etmemeli) + sahne hedefi KIRPIK-YOĞUN videoda (asıl zor vaka).
+
+# ═══ Sahne-niyeti + nesne kelimesi (SEL testi — fix bunları düzeltmeli) ═══
+- id: dev_araclarla_otopark
+  query: "araçlarla dolu açık otopark"
+  intent: scene
+  relevant_videos: [VIRAT_otopark, meva_okul2, meva_otobus]
+  kind: scene_flood
+- id: dev_arabali_alan
+  query: "arabaların park ettiği geniş alan"
+  intent: scene
+  relevant_videos: [VIRAT_otopark, meva_okul2, meva_otobus, VIRAT_kampus]
+  kind: scene_flood
+- id: dev_kampus_yol
+  query: "insanların yürüdüğü kampüs yolu"
+  intent: scene
+  relevant_videos: [meva_hastane2, VIRAT_kampus]
+  kind: scene_flood
+- id: dev_gece_cadde
+  query: "araçların geçtiği gece caddesi"
+  intent: scene
+  relevant_videos: [ucf_gece]
+  kind: scene_flood            # araç kırpık seli (ucf_trafik'ten) gömebilir
+- id: dev_kamyonlu_otopark
+  query: "kamyonların bulunduğu otopark"
+  intent: scene
+  relevant_videos: [ucf_trafik, VIRAT_otopark]
+  kind: scene_flood            # ucf_trafik 731 kamyon kırpığı = en yoğun sel (zor vaka iv)
+- id: dev_garaj_araclar
+  query: "araçların dizildiği kapalı garaj"
+  intent: scene
+  relevant_videos: [video_1, video_2, video_3]
+  kind: scene_flood
+- id: dev_araclarla_yol
+  query: "araçlarla dolu geniş yol"
+  intent: scene
+  relevant_videos: [ucf_trafik]
+  kind: scene_flood            # hedef=sel kaynağı aynı video (ucf_trafik) — ilginç vaka
+
+# ═══ Nesne-kelimesiz sahne (KONTROL — regres ETMEMELİ) ═══
+- id: dev_bos_otopark
+  query: "boş açık otopark alanı"
+  intent: scene
+  relevant_videos: [VIRAT_otopark, meva_okul2]
+  kind: scene_noobj
+- id: dev_genis_kampus
+  query: "geniş kampüs manzarası"
+  intent: scene
+  relevant_videos: [VIRAT_kampus, meva_hastane2]
+  kind: scene_noobj
+
+# ═══ Nesne-niyeti (ADVERSARYAL KONTROL — fix bunlara DOKUNMAMALI) ═══
+- id: dev_ctrl_otoparkta_insan
+  query: "otoparkta yürüyen insan"
+  intent: object
+  relevant_videos: [VIRAT_otopark, meva_hastane1, video_1, video_2, video_3]
+  kind: object_ctrl
+- id: dev_ctrl_caddede_otobus
+  query: "caddede giden otobüs"
+  intent: object
+  relevant_videos: [ucf_trafik]
+  kind: object_ctrl
+- id: dev_ctrl_arabalar_kisi
+  query: "arabaların arasında yürüyen kişi"
+  intent: object
+  relevant_videos: [VIRAT_otopark]
+  kind: object_ctrl

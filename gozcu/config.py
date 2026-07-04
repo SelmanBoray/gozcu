@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     default_top_k: int = 12
     search_overfetch: int = 4        # kare tekilleştirme öncesi top_k × N getir
     group_window_s: float = 8.0      # aynı videoda bu pencere içinde tek sonuç
+    # Sahne-niyetli sorguda kareye z-normalize yumuşak boost (Olgu B — ARCHITECTURE.md §7).
+    # Yalnız intent=="scene"; nesne-niyeti nötr. z-skoru: skor-boşluğundan kalibre edildi.
+    scene_boost_lambda: float = 1.0
 
 
 settings = Settings()

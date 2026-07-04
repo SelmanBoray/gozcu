@@ -177,6 +177,61 @@ def extract_object_intent(visual_text: str) -> ObjectIntent:
     return ObjectIntent(required=required, generic_vehicle=generic)
 
 
+# ── Sahne vs nesne niyeti: durum ekiyle (case morphology), pozisyonla DEĞİL ──
+# "araçlarLA dolu açık otopark" → araç=INSTR (ortam), otopark=NOM → SAHNE
+# "otoparkTA yürüyen insan"     → otopark=LOC (ortam), insan=NOM → NESNE
+# Head = son NOMİNATİF (eksiz) içerik ismi. -DA/-DAn/-lA/-In ekli kelime adjunct'tır.
+# Detay: ARCHITECTURE.md §7 (Olgu B — kırpık seli sahne karesini gömüyordu)
+
+# Yer/sahne kökleri (prefix eşleşir). Kısa/belirsiz kökler (kat, park) kasten dışarıda.
+_SCENE_ROOTS: tuple[str, ...] = (
+    "otopark", "garaj", "cadde", "sokak", "kavsak", "kampus", "otoyol", "otoban",
+    "kaldirim", "meydan", "bahce", "avlu", "koridor", "merdiven", "peron", "durak",
+    "giris", "cikis", "bina", "alan", "yol", "manzara", "sahne", "goruntu", "kamera",
+    "kayit",
+)
+# Adjunct durum ekleri (folded): locative -DA, ablative -DAn, instrumental -lA, genitive -In.
+# Accusative -i/-u KASITEN yok — belirli nesneyi işaretler, head olabilir.
+_CASE_SUFFIXES: tuple[str, ...] = (
+    "da", "de", "ta", "te", "dan", "den", "tan", "ten", "la", "le", "yla", "yle",
+    "in", "un", "nin", "nun", "nda", "nde", "ndan", "nden",
+)
+
+
+def _classify_token(tok: str) -> tuple[str | None, bool]:
+    """Token'ı (tür, adjunct_mu) olarak sınıfla. tür: 'object'|'scene'|None."""
+    for root, _cls in _CLASS_ROOTS:
+        if tok.startswith(root):
+            return ("object", tok[len(root):].endswith(_CASE_SUFFIXES))
+    if tok in _CLASS_EXACT:
+        return ("object", False)
+    for root in _GENERIC_VEHICLE_ROOTS:
+        if tok.startswith(root):
+            return ("object", tok[len(root):].endswith(_CASE_SUFFIXES))
+    for root in _SCENE_ROOTS:
+        if tok.startswith(root):
+            return ("scene", tok[len(root):].endswith(_CASE_SUFFIXES))
+    return (None, False)
+
+
+def scene_or_object_intent(visual_text: str) -> str:
+    """Sorgu niyeti: 'scene' | 'object' | 'neutral'.
+
+    Head = son NOMİNATİF (adjunct eki olmayan) içerik ismi; onun türü niyeti verir.
+    Sahne-niyeti YALNIZ head bir sahne kelimesiyse tetiklenir — sahne kelimesinin
+    sadece geçmesiyle değil (S5: 'otopark bariyeri' tuzağı). Kararsızsa 'neutral'.
+    """
+    head_type: str | None = None
+    for raw in _fold(visual_text).split():
+        tok = raw.strip(".,;:!?()[]\"'")
+        if not tok:
+            continue
+        typ, is_adjunct = _classify_token(tok)
+        if typ is not None and not is_adjunct:  # nominatif → head adayı, sonuncusu kazanır
+            head_type = typ
+    return head_type or "neutral"
+
+
 def parse_query(raw_query: str, now: datetime | None = None) -> ParsedQuery:
     """Ham Türkçe sorguyu görsel metin + zaman aralığına ayırır."""
     now = now or datetime.now()

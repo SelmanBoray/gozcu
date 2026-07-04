@@ -12,6 +12,7 @@ from gozcu.query import (
     ParsedQuery,
     extract_object_intent,
     parse_query,
+    scene_or_object_intent,
 )
 
 # ── Tembel tekiller ──
@@ -45,20 +46,49 @@ class SearchOutcome:
     not_found_reason: str | None = None  # bulunamadı kapısı tetiklendiyse gerekçe
 
 
+def _intent_rerank(hits: list[dict], intent: str, lam: float) -> None:
+    """Sıralama skorunu (`_rank`) yerinde yaz. Ham cosine (`score`) gösterim için korunur.
+
+    Sahne-niyetinde: z-normalize cosine + kareye λ boost (kırpık selini dengeler, Olgu B).
+    Diğer niyetlerde (object/neutral): dokunma — kırpık selini nesne sorgusu için LEHE bırak.
+    z-normalizasyon: cosine aralığı sorgudan sorguya değişir; z-skor λ'yı sorgu-bağımsız yapar.
+    """
+    if not hits:
+        return
+    if intent != "scene" or lam <= 0:
+        for h in hits:
+            h["_rank"] = h["score"]
+        return
+    scores = [h["score"] for h in hits]
+    mean = sum(scores) / len(scores)
+    std = (sum((s - mean) ** 2 for s in scores) / len(scores)) ** 0.5
+    if std < 1e-6:  # tüm skorlar eşit → boost anlamsız
+        for h in hits:
+            h["_rank"] = h["score"]
+        return
+    for h in hits:
+        z = (h["score"] - mean) / std
+        h["_rank"] = z + (lam if h.get("source") == "frame" else 0.0)
+
+
 def _dedup_and_group(hits: list[dict], top_k: int) -> list[dict]:
     """Kırpık + kare aynı kareyi gösterebilir; aynı yürüyüş art arda kareler doldurabilir.
 
-    1. (video, kare) başına en yüksek skorlu tek sonuç.
+    Sıralama `_rank` üzerinden (niyet-boost sonrası); yoksa ham `score`.
+    1. (video, kare) başına en yüksek `_rank`'li tek sonuç.
     2. Aynı videoda `group_window_s` penceresi içinde tek sonuç (en iyisi).
     """
+    def rank(h: dict) -> float:
+        return h.get("_rank", h["score"])
+
     best: dict = {}
-    for h in hits:  # Qdrant skora göre sıralı döner
+    for h in hits:
         key = (h["video_id"], h["frame_idx"])
-        if key not in best:
+        if key not in best or rank(h) > rank(best[key]):
             best[key] = h
 
     kept: list[dict] = []
-    for h in sorted(best.values(), key=lambda x: -x["score"]):
+    for h in sorted(best.values(), key=lambda x: -rank(x)):
         if any(
             k["video_id"] == h["video_id"]
             and abs(k["offset_s"] - h["offset_s"]) < settings.group_window_s
@@ -118,7 +148,12 @@ def search(raw_query: str, top_k: int | None = None, source: str | None = None) 
         )
         time_filter_dropped = True
 
-    # ── 5. Kare tekilleştirme + zaman kümeleme ──
+    # ── 5. Niyet-koşullu yeniden sıralama (sahne-niyeti → kareye z-normalize boost) ──
+    # Yalnız birleşik hatta (source=None) anlamlı; tek-kaynak ablation'da boost no-op.
+    intent = scene_or_object_intent(text)
+    _intent_rerank(results, intent, settings.scene_boost_lambda)
+
+    # ── 6. Kare tekilleştirme + zaman kümeleme (_rank üzerinden sıralar) ──
     results = _dedup_and_group(results, top_k)
 
     return SearchOutcome(results=results, parsed=parsed, time_filter_dropped=time_filter_dropped)

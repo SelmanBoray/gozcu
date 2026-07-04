@@ -1,0 +1,21 @@
+12 dev sorgusu. Model ısıtılıyor...
+
+=== Niyet-sınıflandırıcı doğruluğu ===
+  12/12 = 1.00
+
+=== z-skoru boşluğu (λ=0, scene_flood) — λ bunun biraz üstü olmalı ===
+  dev_araclarla_otopark    z-gap=2.0822832578916093
+  dev_arabali_alan         z-gap=0.0
+  dev_kampus_yol           z-gap=0.0
+  dev_gece_cadde           z-gap=0.0
+  dev_kamyonlu_otopark     z-gap=3.1915132800667063
+  dev_garaj_araclar        z-gap=3.3769596409513536
+  dev_araclarla_yol        z-gap=0.0
+  → medyan gap=0.000, maks=3.377  (config λ=1.0)
+
+=== λ süpürmesi ===
+      λ | sahne R@1 sahne R@5 | noobj R@1 | ctrl R@1
+  0.000 |      0.67      0.78 |      1.00 |     1.00
+  0.375 |      0.67      0.78 |      1.00 |     1.00
+  0.750 |      0.67      0.89 |      1.00 |     1.00
+  1.125 |      0.67      1.00 |      1.00 |     1.00
