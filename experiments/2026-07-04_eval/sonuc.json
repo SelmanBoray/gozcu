@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-07-04 11:10",
+    "date": "2026-07-04 11:24",
     "n_queries": 22,
     "n_scorable": 12,
     "n_advisory": 4,
@@ -213,33 +213,41 @@
         0.452
       ],
       "negative_top1_scores": [
-        0.248,
         0.255,
         0.277,
         0.36
       ],
+      "negatives_gated": [
+        "neg_bisiklet"
+      ],
+      "negatives_gate_rate": 0.25,
+      "false_gates": [],
       "negatives_detail": [
         {
           "id": "neg_bisiklet",
           "neg_type": "class_absent",
-          "top1_score": 0.248,
-          "top1_wrong_class": "insan"
+          "gated": true,
+          "top1_score": null,
+          "top1_wrong_class": null
         },
         {
           "id": "neg_kopek",
           "neg_type": "class_absent",
+          "gated": false,
           "top1_score": 0.36,
           "top1_wrong_class": "insan"
         },
         {
           "id": "neg_yagmur",
           "neg_type": "attribute_absent",
+          "gated": false,
           "top1_score": 0.255,
           "top1_wrong_class": "insan"
         },
         {
           "id": "neg_kar",
           "neg_type": "attribute_absent",
+          "gated": false,
           "top1_score": 0.277,
           "top1_wrong_class": "kamyon"
         }
@@ -261,6 +269,8 @@
       "relevant_videos": [
         "ucf_trafik"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "otobüs",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -330,6 +340,8 @@
         "video_2",
         "video_3"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "motosiklet",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -399,6 +411,8 @@
         "VIRAT_otopark",
         "ucf_trafik"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "kamyon",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -466,6 +480,8 @@
       "relevant_videos": [
         "ucf_gece"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "gece çekilmiş kamera görüntüsü",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -526,6 +542,8 @@
       "relevant_videos": [
         "ucf_gece"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "karanlıkta ilerleyen araçlar",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -595,6 +613,8 @@
         "video_2",
         "video_3"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "kapalı otopark katı",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -655,6 +675,8 @@
       "relevant_videos": [
         "ucf_trafik"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "yoğun trafik akışı",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -723,6 +745,8 @@
         "VIRAT_kampus",
         "VIRAT_otopark"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "açık hava otopark alanı",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -784,6 +808,8 @@
         "VIRAT_otopark",
         "ucf_gece"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "uzakta tek başına yürüyen insan",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -839,6 +865,8 @@
         "video_2",
         "video_3"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "telefonla konuşan sürücü",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -898,6 +926,8 @@
         "video_2",
         "video_3"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "yürüyen insan",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -959,6 +989,8 @@
       "relevant_videos": [
         "VIRAT_otopark"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "park halindeki arabaların arasında yürüyen kişi",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -1029,6 +1061,8 @@
         "video_2",
         "video_3"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "siyah suv araç",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -1085,6 +1119,8 @@
       "relevant_videos": [
         "ucf_trafik"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "mavi kamyonet",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -1143,6 +1179,8 @@
         "VIRAT_otopark",
         "ucf_trafik"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "beyaz renkli araba",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -1201,6 +1239,8 @@
         "video_2",
         "video_3"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "direksiyon başındaki sürücü",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -1253,6 +1293,8 @@
         "video_2",
         "video_3"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "otoparka giren araç",
       "time_phrase": "dün gece",
       "time_filter_dropped": false,
@@ -1310,6 +1352,8 @@
         "VIRAT_otopark",
         "ucf_trafik"
       ],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "geçen kamyon",
       "time_phrase": "son 3 saatte",
       "time_filter_dropped": true,
@@ -1364,54 +1408,15 @@
       "category": "negatif",
       "scorable_recall": false,
       "relevant_videos": [],
+      "gated": true,
+      "not_found_reason": "Korpusta 'bisiklet' tespit edilmedi — bu nesne kayıtlarda yok.",
       "parsed_visual": "kırmızı bisiklet süren çocuk",
       "time_phrase": null,
       "time_filter_dropped": false,
-      "top1": {
-        "video": "ucf_trafik",
-        "source": "crop",
-        "yolo_class": "insan",
-        "score": 0.248
-      },
-      "top5": [
-        {
-          "rank": 1,
-          "video": "ucf_trafik",
-          "source": "crop",
-          "yolo_class": "insan",
-          "score": 0.248
-        },
-        {
-          "rank": 2,
-          "video": "VIRAT_kampus",
-          "source": "crop",
-          "yolo_class": "araba",
-          "score": 0.246
-        },
-        {
-          "rank": 3,
-          "video": "ucf_trafik",
-          "source": "crop",
-          "yolo_class": "kamyon",
-          "score": 0.24
-        },
-        {
-          "rank": 4,
-          "video": "ucf_trafik",
-          "source": "crop",
-          "yolo_class": "araba",
-          "score": 0.24
-        },
-        {
-          "rank": 5,
-          "video": "ucf_trafik",
-          "source": "crop",
-          "yolo_class": "araba",
-          "score": 0.238
-        }
-      ],
+      "top1": null,
+      "top5": [],
       "neg_type": "class_absent",
-      "top1_wrong_class": "insan"
+      "top1_wrong_class": null
     },
     {
       "id": "neg_kopek",
@@ -1420,6 +1425,8 @@
       "category": "negatif",
       "scorable_recall": false,
       "relevant_videos": [],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "köpek gezdiren adam",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -1476,6 +1483,8 @@
       "category": "negatif",
       "scorable_recall": false,
       "relevant_videos": [],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "yağmurda şemsiyeli insanlar",
       "time_phrase": null,
       "time_filter_dropped": false,
@@ -1532,6 +1541,8 @@
       "category": "negatif",
       "scorable_recall": false,
       "relevant_videos": [],
+      "gated": false,
+      "not_found_reason": null,
       "parsed_visual": "karla kaplı sokak",
       "time_phrase": null,
       "time_filter_dropped": false,

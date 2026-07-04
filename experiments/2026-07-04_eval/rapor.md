@@ -1,4 +1,4 @@
-# Gözcü Eval — 2026-07-04 11:10
+# Gözcü Eval — 2026-07-04 11:24
 
 - Sorgu: 22 (skorlanabilir 12, advisory 4, zaman 2, negatif 4)
 - İndeks: 4080 vektör · top_k=10 · model jinaai/jina-clip-v2
@@ -27,18 +27,20 @@
   - `gold_yuruyen_insan` sıra=1
   - `gold_parkta_yuruyen` sıra=1
 
-## Negatif ayrımcılık (S4 — mutlak eşik yok, göreli)
+## Negatif ayrımcılık (S4) + bulunamadı kapısı
 
+- **Kapı yakalama oranı: 0.25** (yakalanan: ['neg_bisiklet'])
+- ✅ Yanlış kapı yok — hiçbir pozitif sorgu takılmadı
+- Kapıya takılmayan negatiflerin top-1 skorları: [0.255, 0.277, 0.36]
 - Pozitif top-1 skorları: [0.282, 0.349, 0.363, 0.363, 0.364, 0.366, 0.366, 0.377, 0.384, 0.392, 0.408, 0.452]
-- Negatif top-1 skorları: [0.248, 0.255, 0.277, 0.36]
-- Ayrım marjı (min-pozitif − max-negatif): -0.078 → ÖRTÜŞME (tek eşik ayırmaz)
+- Kalan ayrım marjı (min-poz − max-neg): -0.078 → ÖRTÜŞME (kalan negatifler VLM gerektirir)
 
-| negatif | tip | top-1 skor | top-1 sınıf |
-|---|---|---|---|
-| neg_bisiklet | class_absent | 0.248 | insan |
-| neg_kopek | class_absent | 0.36 | insan |
-| neg_yagmur | attribute_absent | 0.255 | insan |
-| neg_kar | attribute_absent | 0.277 | kamyon |
+| negatif | tip | kapı | top-1 skor | top-1 sınıf |
+|---|---|---|---|---|
+| neg_bisiklet | class_absent | ✅ boş | None | None |
+| neg_kopek | class_absent | geçti | 0.36 | insan |
+| neg_yagmur | attribute_absent | geçti | 0.255 | insan |
+| neg_kar | attribute_absent | geçti | 0.277 | kamyon |
 
 ## Zaman ayrıştırma (Boşluk 1 — 'gece' embed mi parse mi?)
 
@@ -70,7 +72,7 @@
 | adv_direksiyon | advisory | direksiyon başındaki sürücü | video_3 | — |
 | time_dun_gece | zaman | dün gece otoparka giren araç | VIRAT_otopark | — |
 | time_son_saat | zaman | son 3 saatte geçen kamyon | ucf_trafik | — |
-| neg_bisiklet | negatif | kırmızı bisiklet süren çocuk | ucf_trafik | — |
+| neg_bisiklet | negatif | kırmızı bisiklet süren çocuk | — | — |
 | neg_kopek | negatif | köpek gezdiren adam | VIRAT_otopark | — |
 | neg_yagmur | negatif | yağmurda şemsiyeli insanlar | VIRAT_otopark | — |
 | neg_kar | negatif | karla kaplı sokak | ucf_trafik | — |

@@ -27,6 +27,7 @@ class FrameStore:
         # ── Client + koleksiyon kurulumu ──
         settings.qdrant_path.mkdir(parents=True, exist_ok=True)
         self.client = QdrantClient(path=str(settings.qdrant_path))
+        self._class_cache: set[str] | None = None  # bulunamadı kapısı için sınıf envanteri
         if not self.client.collection_exists(COLLECTION):
             self.client.create_collection(
                 collection_name=COLLECTION,
@@ -143,6 +144,32 @@ class FrameStore:
             with_payload=True,
         )
         return [{**point.payload, "score": point.score} for point in response.points]
+
+    def available_object_classes(self) -> set[str]:
+        """Korpustaki kırpıklarda GÖRÜLEN YOLO sınıfları (bulunamadı kapısı).
+
+        Bir kez taranıp önbelleğe alınır. Sorguda geçen ama burada olmayan bir sınıf
+        → o nesne kayıtlarda yok → güvenilir "bulunamadı".
+        """
+        if self._class_cache is None:
+            seen: set[str] = set()
+            offset = None
+            crop_only = models.Filter(
+                must=[models.FieldCondition(key="source", match=models.MatchValue(value="crop"))]
+            )
+            while True:
+                pts, offset = self.client.scroll(
+                    COLLECTION, scroll_filter=crop_only, limit=1000,
+                    with_payload=["yolo_class"], with_vectors=False, offset=offset,
+                )
+                for p in pts:
+                    cls = p.payload.get("yolo_class")
+                    if cls:
+                        seen.add(cls)
+                if offset is None:
+                    break
+            self._class_cache = seen
+        return self._class_cache
 
     def count(self) -> int:
         """İndeksteki toplam kare sayısı."""

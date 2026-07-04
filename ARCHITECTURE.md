@@ -63,6 +63,23 @@ Koleksiyon `frames`: boyut **1024**, mesafe **Cosine**, HNSW **varsayılanları*
 - **Faz 2:** Lokal LLM sorgu ayrıştırıcı (Qwen3-4B, Ollama, ~3 GB q4) → `{visual_tr, visual_en, time_range, camera}` JSON; iki dil varyantı da embedlenip max skor alınır.
 - **KVKK notu:** Sorgular görüntü içermez ama **kişisel veri içerebilir** (plaka, isim). Bu yüzden bulut çeviri API'si kullanılmaz — "hiçbir veri dışarı çıkmaz" hem satış argümanı hem tasarım ilkesi. 4B lokal model sorgu çevirisi için fazlasıyla yeterli.
 
+## 4b. Bulunamadı kapısı (yolo_class sertlik kapısı — 4 Temmuz 2026)
+
+Eval bulgusu: sistemin güvenilir "bulunamadı" sinyali yok — CLIP kosinüsü sorgular
+arası kalibre değil, korpusta olmayan nesne (kırmızı bisiklet) makul-ama-yanlış
+sonuç döndürüyordu (min-poz 0.282 < max-neg 0.36). Çözüm skor eşiği DEĞİL, **YOLO
+envanteri:** sorgu tespit edilebilir bir sınıf istiyorsa (`query.extract_object_intent`,
+Türkçe eş anlamlı + ASCII-fold ile çekim ekine dayanıklı) ve o sınıf korpusta hiç
+yoksa (`store.available_object_classes`) → CLIP'e sormadan boş dön.
+
+- **Yalnız prod hattında** (`source=None`); ablation koşuları kapıyı atlar (ham
+  retrieval ölçümü korunur).
+- **Kalibrasyon yok** — envanter kontrolü, eşik değil. Korpus büyüdükçe otomatik uyarlanır.
+- **Ölçülen etki:** pozitif metrikler değişmedi (yanlış kapı = 0), negatif yakalama
+  0.25 (`neg_bisiklet` boş döndü). Kapsam: yalnız "tespit edilebilir sınıf yok" vakası.
+  Öznitelik/hava (yağmur, kar) ve tespit edilemeyen nesne (köpek) → Faz 2 VLM'e kalır.
+- Detay: `experiments/2026-07-04_bulunamadi_kapisi/`
+
 ## 5. Modül yapısı (düz paket — derin iç içe klasör yok)
 
 | Modül | Sorumluluk |

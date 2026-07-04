@@ -117,6 +117,9 @@ def eval_query(entry: dict, k: int) -> dict:
         "category": entry.get("category", "?"),
         "scorable_recall": entry.get("scorable_recall", False),
         "relevant_videos": sorted(relevant),
+        # Bulunamadı kapısı: prod hattı boş döndürdü mü?
+        "gated": outcome_combined.not_found_reason is not None,
+        "not_found_reason": outcome_combined.not_found_reason,
         # Boşluk 1 denetimi: ne embedlendi, ne parse edildi?
         "parsed_visual": parsed.visual_text,
         "time_phrase": parsed.time_phrase,
@@ -240,10 +243,17 @@ def aggregate(results: list[dict]) -> dict:
         "discrimination": {
             "positive_top1_scores": sorted(
                 r["top1"]["score"] for r in scorable if r.get("top1")),
+            # Kapı sonrası kalan (yakalanamayan) negatiflerin top-1 skorları
             "negative_top1_scores": sorted(
-                r["top1"]["score"] for r in negs if r.get("top1")),
+                r["top1"]["score"] for r in negs if r.get("top1") and not r.get("gated")),
+            # Bulunamadı kapısının yakaladığı negatifler (başarı)
+            "negatives_gated": [r["id"] for r in negs if r.get("gated")],
+            "negatives_gate_rate": round(
+                sum(1 for r in negs if r.get("gated")) / len(negs), 3) if negs else None,
+            # DENETİM: hiçbir pozitif yanlışlıkla kapıya takılmamalı
+            "false_gates": [r["id"] for r in scorable if r.get("gated")],
             "negatives_detail": [
-                {"id": r["id"], "neg_type": r.get("neg_type"),
+                {"id": r["id"], "neg_type": r.get("neg_type"), "gated": r.get("gated"),
                  "top1_score": r["top1"]["score"] if r.get("top1") else None,
                  "top1_wrong_class": r.get("top1_wrong_class")}
                 for r in negs
@@ -309,22 +319,30 @@ def write_markdown(agg: dict, results: list[dict], meta: dict) -> str:
             L.append(f"  - `{r['id']}` sıra={rank}")
     L.append("")
 
-    # ── Negatif ayrımcılık ──
+    # ── Negatif ayrımcılık + bulunamadı kapısı ──
     d = agg["discrimination"]
-    L.append("## Negatif ayrımcılık (S4 — mutlak eşik yok, göreli)")
+    L.append("## Negatif ayrımcılık (S4) + bulunamadı kapısı")
     L.append("")
+    L.append(f"- **Kapı yakalama oranı: {d['negatives_gate_rate']}** "
+             f"(yakalanan: {d['negatives_gated'] or '—'})")
+    if d["false_gates"]:
+        L.append(f"- ⚠️ **YANLIŞ KAPI** (pozitif takıldı): {d['false_gates']}")
+    else:
+        L.append("- ✅ Yanlış kapı yok — hiçbir pozitif sorgu takılmadı")
+    L.append(f"- Kapıya takılmayan negatiflerin top-1 skorları: {d['negative_top1_scores']}")
     L.append(f"- Pozitif top-1 skorları: {d['positive_top1_scores']}")
-    L.append(f"- Negatif top-1 skorları: {d['negative_top1_scores']}")
     if d["positive_top1_scores"] and d["negative_top1_scores"]:
         pmin = min(d["positive_top1_scores"])
         nmax = max(d["negative_top1_scores"])
-        L.append(f"- Ayrım marjı (min-pozitif − max-negatif): {pmin - nmax:+.3f} "
-                 f"→ {'temiz ayrım' if pmin > nmax else 'ÖRTÜŞME (tek eşik ayırmaz)'}")
+        L.append(f"- Kalan ayrım marjı (min-poz − max-neg): {pmin - nmax:+.3f} "
+                 f"→ {'temiz' if pmin > nmax else 'ÖRTÜŞME (kalan negatifler VLM gerektirir)'}")
     L.append("")
-    L.append("| negatif | tip | top-1 skor | top-1 sınıf |")
-    L.append("|---|---|---|---|")
+    L.append("| negatif | tip | kapı | top-1 skor | top-1 sınıf |")
+    L.append("|---|---|---|---|---|")
     for nd in d["negatives_detail"]:
-        L.append(f"| {nd['id']} | {nd['neg_type']} | {nd['top1_score']} | {nd['top1_wrong_class']} |")
+        gate = "✅ boş" if nd["gated"] else "geçti"
+        L.append(f"| {nd['id']} | {nd['neg_type']} | {gate} | {nd['top1_score']} | "
+                 f"{nd['top1_wrong_class']} |")
     L.append("")
 
     # ── Zaman ayrıştırma denetimi (Boşluk 1) ──

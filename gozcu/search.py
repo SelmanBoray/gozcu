@@ -7,7 +7,12 @@ model ~2 GB olduğundan yalnızca ilk aramada belleğe alınır.
 from dataclasses import dataclass
 
 from gozcu.config import settings
-from gozcu.query import ParsedQuery, parse_query
+from gozcu.query import (
+    VEHICLE_CLASSES,
+    ParsedQuery,
+    extract_object_intent,
+    parse_query,
+)
 
 # ── Tembel tekiller ──
 _embedder = None
@@ -37,6 +42,7 @@ class SearchOutcome:
     results: list[dict]          # store.search çıktısı (payload + score)
     parsed: ParsedQuery          # hangi görsel metin / zaman aralığı kullanıldı
     time_filter_dropped: bool    # zaman filtresi sıfır sonuç verdi, filtresiz tekrarlandı
+    not_found_reason: str | None = None  # bulunamadı kapısı tetiklendiyse gerekçe
 
 
 def _dedup_and_group(hits: list[dict], top_k: int) -> list[dict]:
@@ -75,9 +81,26 @@ def search(raw_query: str, top_k: int | None = None, source: str | None = None) 
 
     # ── 1. Ayrıştır: görsel metin + zaman filtresi ──
     parsed = parse_query(raw_query)
+    text = parsed.visual_text or raw_query
+
+    # ── 1b. Bulunamadı kapısı (yalnız prod hattında; ablation ham retrieval'ı ölçer) ──
+    # Sorgu, korpusta HİÇ tespit edilmemiş bir YOLO sınıfı istiyorsa CLIP skoruna
+    # bakmadan boş dön — "kırmızı bisiklet" gibi yok olan nesneye makul-ama-yanlış
+    # sonuç sunmayı önler (eval'de negatif örtüşme bulgusunun hedefli hafifletmesi).
+    if source is None:
+        intent = extract_object_intent(text)
+        available = get_store().available_object_classes()
+        missing = intent.required - available
+        if missing:
+            reason = (f"Korpusta '{', '.join(sorted(missing))}' tespit edilmedi — "
+                      f"bu nesne kayıtlarda yok.")
+            return SearchOutcome(results=[], parsed=parsed,
+                                 time_filter_dropped=False, not_found_reason=reason)
+        if intent.generic_vehicle and not (available & VEHICLE_CLASSES):
+            return SearchOutcome(results=[], parsed=parsed, time_filter_dropped=False,
+                                 not_found_reason="Korpusta hiç taşıt tespit edilmedi.")
 
     # ── 2. Görsel metni embedle (boş kaldıysa ham sorguya geri düş) ──
-    text = parsed.visual_text or raw_query
     vector = get_embedder().encode_text(text)
 
     # ── 3. Filtreli vektör araması ──

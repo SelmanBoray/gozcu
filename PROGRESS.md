@@ -1,5 +1,23 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 4 Temmuz 2026 (öğleden sonra) — Bulunamadı kapısı: "bisiklet yok" artık boş dönüyor
+
+- Eval'in en kritik açığı (güvenilir "bulunamadı" sinyali yok) hedefli çözüldü.
+  Skor eşiği yerine **YOLO envanteri**: sorgu tespit edilebilir bir sınıf istiyorsa
+  ve korpusta o sınıf hiç yoksa → CLIP'e sormadan boş dön.
+- `query.extract_object_intent` (Türkçe eş anlamlı + ASCII-fold, çekim ekine dayanıklı),
+  `store.available_object_classes` (önbellekli envanter), `search` kapısı (yalnız prod
+  hattı; ablation atlar), cli/viewer "BULUNAMADI" mesajı.
+- **Ölçüldü (aynı dondurulmuş set, eşleştirilmiş):** pozitif metrikler DEĞİŞMEDİ
+  (R@1=0.917, R@5=1.0 — yanlış kapı = 0), negatif yakalama 0.25 (`neg_bisiklet` boş).
+- Dürüst sınır: kapı yalnız "tespit edilebilir sınıf yok"u çözer; köpek (YOLO sınıfı
+  değil) + yağmur/kar (öznitelik) geçti → kalan örtüşme -0.078 Faz 2 VLM'e kalır.
+- Uçtan uca: `search "kırmızı bisiklet süren çocuk"` → "Korpusta 'bisiklet' tespit
+  edilmedi". Detay: `experiments/2026-07-04_bulunamadi_kapisi/`
+
+**Sıradaki adım:** Faz 2 VLM re-rank (öznitelik/hava/eylem doğrulaması) ya da tespit
+sınıflarını genişletme (köpek/kedi → kapı kapsamı büyür).
+
 ## 4 Temmuz 2026 — Eval seti kuruldu (Risk 3 kapandı) + Faz 1.5'in değeri ölçüldü
 
 - AI Engineer eval tasarımını inceledi, naif "video-düzeyi recall"i 3 yerde kırdı:

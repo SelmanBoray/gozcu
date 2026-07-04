@@ -50,7 +50,10 @@ if query:
     if outcome.time_filter_dropped:
         st.warning("Zaman aralığında sonuç bulunamadı — filtre kaldırılıp tüm arşivde arandı.")
 
-    if not outcome.results:
+    if outcome.not_found_reason:
+        # ── Bulunamadı kapısı: sorgulanan nesne sınıfı korpusta hiç yok ──
+        st.info(f"🔍 **Bulunamadı** — {outcome.not_found_reason}")
+    elif not outcome.results:
         st.error("Sonuç yok. Önce `python -m gozcu index <klasör>` ile arşivi indeksleyin.")
     else:
         # ── Seçilen sonucu videoda o andan oynat ──

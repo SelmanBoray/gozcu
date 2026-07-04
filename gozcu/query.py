@@ -118,6 +118,65 @@ FILLER_RE = re.compile(
 )
 
 
+# ── Nesne sınıfı niyeti: sorgu hangi YOLO sınıfını istiyor? (bulunamadı kapısı) ──
+# Amaç: korpusta HİÇ olmayan bir nesne (ör. bisiklet) arandığında CLIP skoruna değil,
+# YOLO tespitine dayanan güvenilir "bulunamadı" sinyali vermek. Detay: ARCHITECTURE.md §4b
+
+_ASCII = str.maketrans("çğıöşüÇĞİÖŞÜ", "cgiosuCGIOSU")
+
+
+def _fold(s: str) -> str:
+    """Türkçe karakterleri ASCII'ye indir — çekim eklerine rağmen kök eşleşsin."""
+    return s.translate(_ASCII).lower()
+
+
+# (folded_kök, YOLO sınıf adı) — prefix eşleşir: arabalar→araba, insanı→insan, otobüsler→otobüs
+_CLASS_ROOTS: list[tuple[str, str]] = [
+    ("insan", "insan"), ("adam", "insan"), ("kisi", "insan"), ("kadin", "insan"),
+    ("erkek", "insan"), ("cocuk", "insan"), ("yaya", "insan"), ("surucu", "insan"),
+    ("bisiklet", "bisiklet"),
+    ("araba", "araba"), ("otomobil", "araba"), ("sedan", "araba"),
+    ("motosiklet", "motosiklet"), ("motorsiklet", "motosiklet"),
+    ("otobus", "otobüs"), ("minibus", "otobüs"), ("midibus", "otobüs"),
+    ("kamyonet", "kamyon"), ("kamyon", "kamyon"),
+]
+# Kısa/riskli kökler yalnız tam kelime eşleşir (yanlış prefix eşleşmesini önler)
+_CLASS_EXACT: dict[str, str] = {"suv": "araba", "tir": "kamyon", "tira": "kamyon"}
+# Belirli sınıf değil, herhangi bir taşıt ("araç geçti") — taşıt varsa boş dönme
+_GENERIC_VEHICLE_ROOTS = ("arac", "vasita", "tasit")
+VEHICLE_CLASSES = {"bisiklet", "araba", "motosiklet", "otobüs", "kamyon"}
+
+
+@dataclass
+class ObjectIntent:
+    """Sorgunun istediği YOLO sınıfları — bulunamadı kapısı için."""
+
+    required: set[str]      # sorguda geçen BELİRLİ sınıflar (ör. {"bisiklet"})
+    generic_vehicle: bool   # yalnız genel "araç/taşıt" geçti (belirli sınıf yok)
+
+
+def extract_object_intent(visual_text: str) -> ObjectIntent:
+    """Görsel metinden istenen nesne sınıflarını çıkar (çekim ekine dayanıklı)."""
+    required: set[str] = set()
+    generic = False
+    for raw_tok in _fold(visual_text).split():
+        tok = raw_tok.strip(".,;:!?()[]\"'")
+        if not tok:
+            continue
+        hit = None
+        for root, cls in _CLASS_ROOTS:
+            if tok.startswith(root):
+                hit = cls
+                break
+        if hit is None:
+            hit = _CLASS_EXACT.get(tok)
+        if hit is not None:
+            required.add(hit)
+        elif tok.startswith(_GENERIC_VEHICLE_ROOTS):
+            generic = True
+    return ObjectIntent(required=required, generic_vehicle=generic)
+
+
 def parse_query(raw_query: str, now: datetime | None = None) -> ParsedQuery:
     """Ham Türkçe sorguyu görsel metin + zaman aralığına ayırır."""
     now = now or datetime.now()

@@ -142,6 +142,11 @@ def search(
         typer.echo("UYARI: Zaman aralığında sonuç yok — filtre kaldırılıp tüm arşivde arandı.")
     typer.echo("")
 
+    # ── Bulunamadı kapısı: sorgulanan nesne sınıfı korpusta yok ──
+    if outcome.not_found_reason:
+        typer.echo(f"BULUNAMADI: {outcome.not_found_reason}")
+        raise typer.Exit(0)
+
     if not outcome.results:
         typer.echo("Sonuç bulunamadı. Önce `python -m gozcu index <klasör>` çalıştırıldı mı?")
         raise typer.Exit(1)
