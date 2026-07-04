@@ -111,6 +111,11 @@ embedlenip AYNI koleksiyona `source:"crop"` olarak yazılır — ana kareye işa
 - Skor ofseti yok: nesne sorguları kırpığı, sahne sorguları kareyi doğal seçiyor.
 - Doğrulama: "uzakta tek başına yürüyen insan" → ilk 3 sonuç da doğru insan kırpığı
   (önce: yakın planlı yanlış videoya kayıptı). `experiments/2026-07-03_faz15_yolo_crop/`
+- **Bilinen sınır (4 Temmuz 2026, korpus büyütme v2'de ölçüldü):** "skor ofseti yok →
+  kendi kendini düzeltir" varsayımı, sahne sorgusu bir NESNE KELİMESİ içerince bozuluyor.
+  "araçlarla dolu açık otopark" → "araç" kırpıklarının seli doğru sahne karesini rank 8'e
+  itiyor (Faz 1.5 marjini o sorguda −0.333). Çözüm adayı: sahne-niyetli sorgularda (yer
+  adı) kareyi tercih / niyet tespiti. `experiments/2026-07-04_korpus_buyutme/`
 
 ## 6. En büyük 3 risk
 

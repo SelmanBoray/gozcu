@@ -1,5 +1,26 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 4 Temmuz 2026 (akşam) — Korpus büyütüldü (MEVA): eval artık ayrımcı, 2 gerçek olgu çıktı
+
+- AI Engineer kaynak seçti: **MEVA KF1** (VIRAT halefi, S3 public, HTTP Range destekli —
+  Kitware'in no-Range sorununu çözdü). ffmpeg ile URL'den ilk 60 sn çekilip normalize edildi.
+- **6 farklı sabit kamera eklendi** (hastane/okul/otobüs/idari açık alan + iç mekan):
+  korpus 7→**13 video**, 4080→**4391 vektör**, +54 yeni sahnede insan kırpığı. Statik lotlar
+  1 kare verdi (hareket kapısı doğru; park araçları kırpık olarak yakalandı).
+- **v1 (kilitli 22 sorgu) çeldiricilere rağmen SAĞLAM:** R@1=0.917, R@5=1.0 DEĞİŞMEDİ.
+  MEVA kırpık düzeyinde rekabet ediyor ama doğru cevap kazanıyor → R@5=1.0 artık güvenilir,
+  şişme "sahte" değilmiş, embedding gerçekten ayırıyor. (`experiments/2026-07-04_eval_meva/`)
+- **v2 (pre-registered, eklemeli) 2 gerçek olgu ifşa etti** (R@1=0.333 — artık zor):
+  - **Olgu A:** 8sn kümeleme spesifik golden'ı yutuyor ama DOĞRU video zirvede (retrieval
+    hatası değil; `fail_attribution`=dedup/kümeleme doğru işaretledi — golden etiketim spesifikti).
+  - **Olgu B (gerçek zaaf):** "araçlarla dolu otopark" sahne sorgusu, araç kırpıklarının seli
+    altında rank 8'e gömülüyor. Faz 1.5 marjini v2'de −0.333 (kare > birleşik). Skor-ofsetsiz
+    birleşik indeksin sınırı. (`experiments/2026-07-04_eval_v2/`)
+- Detay: `experiments/2026-07-04_korpus_buyutme/deney_notu.md`
+
+**Sıradaki adım:** Olgu B — sahne-niyetli sorgularda kareyi kırpığa tercih (niyet tespiti);
+AI Engineer danışması gerekir. Gece/trafik için UA-DETRAC (Kaggle token gerekiyor).
+
 ## 4 Temmuz 2026 (öğleden sonra) — Bulunamadı kapısı: "bisiklet yok" artık boş dönüyor
 
 - Eval'in en kritik açığı (güvenilir "bulunamadı" sinyali yok) hedefli çözüldü.

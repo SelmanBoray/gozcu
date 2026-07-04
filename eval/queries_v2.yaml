@@ -1,0 +1,54 @@
+# Gözcü eval v2 — EKLEMELİ set (korpus büyütme sonrası, pre-registration).
+# v1 (queries.yaml) DONDURULMUŞ regresyon temeli; v2 yeni MEVA videolarını sömürür.
+# Amaç: yeni açık alan sahnelerinin (MEVA hastane/okul/otobüs/idari) BULUNABİLİR
+# olduğunu ve çok-aday rekabetin çalıştığını doğrulamak (AI Engineer S5).
+#
+# Golden frame_idx'ler küçük resim GÖZLE doğrulandı (skora güvenilmedi):
+#   meva_hastane1/225 = kaldırımda uzaklaşan yürüyen insan (elinde beyaz nesne)
+#   meva_okul2/0      = araçlarla dolu açık otopark
+#
+# Not: VIRAT_kampus zaten v1'de insan sorgularından çıkarıldı (0 insan) — AI Engineer'ın
+# "insan-yok hard-negative" önerisi karşılanmış durumda, relabel gerekmez.
+
+# ═══════════ Golden — yeni sahne bulunabilirliği ═══════════
+- id: v2_gold_meva_yuruyen
+  query: "kaldırımda yürüyüp uzaklaşan insan"
+  gt_type: golden
+  scorable_recall: true
+  relevant_videos: [meva_hastane1]
+  golden_frame: {video_id: meva_hastane1, frame_idx: 225}
+  category: davranis
+  notes: "yeni MEVA sahnesindeki insan tüm insan çeldiricileri arasında bulunuyor mu?"
+- id: v2_gold_meva_otopark
+  query: "araçlarla dolu açık otopark"
+  gt_type: golden
+  scorable_recall: true
+  relevant_videos: [meva_okul2]
+  golden_frame: {video_id: meva_okul2, frame_idx: 0}
+  category: sahne
+  notes: "yeni MEVA otoparkı, VIRAT_otopark + diğer lotlar arasında bulunuyor mu?"
+
+# ═══════════ Sahne — çok-aday rekabet (v1'de tek adaydı, şimdi ≥2) ═══════════
+- id: v2_scene_kampus
+  query: "kampüs yürüyüş yolları"
+  gt_type: scene
+  scorable_recall: true
+  relevant_videos: [meva_hastane2, VIRAT_kampus]   # kampüs yol sahnesi artık 2 aday
+  category: sahne
+  notes: "v1'de kampüs tek adaydı; MEVA hastane2 benzer yürüyüş yolu ekledi"
+
+# ═══════════ Advisory — MEVA öznitelik (recall'a girmez, top-1 denetim) ═══════════
+- id: v2_adv_kamyonet
+  query: "beyaz kamyonet"
+  gt_type: advisory
+  scorable_recall: false
+  relevant_videos: [meva_okul2, meva_otobus, meva_hastane2]  # MEVA'da pickup/kamyonet var
+  category: oznitelik
+  notes: "MEVA lotlarında beyaz pickup'lar; ucf_trafik ile rekabet"
+- id: v2_adv_bina_arac
+  query: "tuğla bina önünde araç"
+  gt_type: advisory
+  scorable_recall: false
+  relevant_videos: [meva_hastane1, meva_hastane2, meva_okul1]
+  category: sahne
+  notes: "MEVA bina sahneleri bulunabilir mi? (semantik sahne ipucu — top-1 gözle)"
