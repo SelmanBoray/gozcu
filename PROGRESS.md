@@ -14,8 +14,13 @@
   çözemediği negatif örtüşme çözüldü). "otobüs"→VLM tetiklemez (0s, vergi yok).
 - **Yol boyu düzeltilen hata:** VLM reddedince conf=0.0 (P(present)) → filtre iki moda ayrıldı:
   negasyon (düşük-conf düşür, hepsi düşerse bulunamadı) / öznitelik (renk rerank, drop yok).
-- Latency ~4s/görüntü → koşullu tetik. LLM sorgu-ayrıştırıcı ERTELENDİ (VRAM). Detay: ARCHITECTURE.md §8
-- **Bekliyor:** renk-precision gözle doğrulama (VLM mavi/cyan'da zayıf olabilir) + tam eval.
+- Latency ~4-6s/görüntü → koşullu tetik. LLM sorgu-ayrıştırıcı ERTELENDİ (VRAM). Detay: ARCHITECTURE.md §8
+- **Ölçüldü + gözle doğrulandı:** negasyon güçlü (köpek→BULUNAMADI, yağmur 0/6); **renk — VLM
+  CLIP'in hatalarını düzeltiyor** ("mavi kamyonet"te CLIP 4 aday, VLM 1 gerçek maviyi onayladı,
+  3 sahteyi reddetti; 3 renk de gözle doğru — tam-res recrop mavi-korkusunu yendi). Pozitif
+  kontrol otobüs 5/5, kamyon 4/4. Dürüst sınır: kar 2/6 false-accept (açık zemin→"kar").
+- **Güvenilirlik düzeltildi:** ilk marathon %24 hata (CLIP+VLM 8GB spike) → timeout 20→45s +
+  retry → tek-sorgu (prod) 0/8. Detay: `experiments/2026-07-04_faz2_vlm/`.
 
 ## 4 Temmuz 2026 (gece) — Olgu B çözüldü: sahne-niyetli frame boost (durum-eki tabanlı)
 

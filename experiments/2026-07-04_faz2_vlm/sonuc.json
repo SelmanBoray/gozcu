@@ -1,0 +1,684 @@
+[
+  {
+    "id": "f2_neg_kopek",
+    "bucket": "negation",
+    "query": "köpek gezdiren adam",
+    "english": "dog walking man",
+    "ask_color": false,
+    "candidates": [
+      {
+        "rank": 1,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.36,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 2,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.324,
+        "vlm": null
+      },
+      {
+        "rank": 3,
+        "video": "meva_hastane1",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.322,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 4,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.285,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      }
+    ]
+  },
+  {
+    "id": "f2_neg_yagmur",
+    "bucket": "negation",
+    "query": "yağmurda şemsiyeli insanlar",
+    "english": "rain umbrella person",
+    "ask_color": false,
+    "candidates": [
+      {
+        "rank": 1,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.255,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 2,
+        "video": "meva_hastane1",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.242,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 3,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.224,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 4,
+        "video": "meva_okul1",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.213,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 5,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.202,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 6,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.201,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      }
+    ]
+  },
+  {
+    "id": "f2_neg_kar",
+    "bucket": "negation",
+    "query": "karla kaplı sokak",
+    "english": "snow covered street",
+    "ask_color": false,
+    "candidates": [
+      {
+        "rank": 1,
+        "video": "meva_hastane1",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.283,
+        "vlm": {
+          "object_present": true,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 2,
+        "video": "meva_hastane2",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.279,
+        "vlm": {
+          "object_present": true,
+          "color_match": "white",
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 3,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "cos": 0.277,
+        "vlm": null
+      },
+      {
+        "rank": 4,
+        "video": "ucf_gece",
+        "source": "frame",
+        "yolo_class": null,
+        "cos": 0.257,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 5,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "otobüs",
+        "cos": 0.268,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 6,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.265,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      }
+    ]
+  },
+  {
+    "id": "f2_attr_siyah_suv",
+    "bucket": "attribute",
+    "query": "siyah SUV araç",
+    "english": "black SUV vehicle",
+    "ask_color": true,
+    "candidates": [
+      {
+        "rank": 1,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.348,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 2,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.322,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 0.9
+        }
+      },
+      {
+        "rank": 3,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.318,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 4,
+        "video": "meva_hastane2",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.317,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 5,
+        "video": "video_3",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.312,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 6,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "cos": 0.302,
+        "vlm": {
+          "object_present": true,
+          "color_match": false,
+          "confidence": 0.0
+        }
+      }
+    ]
+  },
+  {
+    "id": "f2_attr_mavi_kamyonet",
+    "bucket": "attribute",
+    "query": "mavi kamyonet",
+    "english": "blue pickup truck",
+    "ask_color": true,
+    "candidates": [
+      {
+        "rank": 1,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "cos": 0.372,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 2,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "cos": 0.364,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 3,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "otobüs",
+        "cos": 0.327,
+        "vlm": {
+          "object_present": false,
+          "color_match": false,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 4,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "cos": 0.308,
+        "vlm": {
+          "object_present": true,
+          "color_match": false,
+          "confidence": 0.5
+        }
+      }
+    ]
+  },
+  {
+    "id": "f2_attr_beyaz_arac",
+    "bucket": "attribute",
+    "query": "beyaz renkli araba",
+    "english": "white car",
+    "ask_color": true,
+    "candidates": [
+      {
+        "rank": 1,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.382,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 0.9
+        }
+      },
+      {
+        "rank": 2,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.379,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 0.7
+        }
+      },
+      {
+        "rank": 3,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.378,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 4,
+        "video": "meva_hastane1",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.377,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 5,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.374,
+        "vlm": null
+      },
+      {
+        "rank": 6,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.372,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 0.9
+        }
+      }
+    ]
+  },
+  {
+    "id": "f2_attr_kirmizi_arac",
+    "bucket": "attribute",
+    "query": "kırmızı araba",
+    "english": "red car",
+    "ask_color": true,
+    "candidates": [
+      {
+        "rank": 1,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.385,
+        "vlm": null
+      },
+      {
+        "rank": 2,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.383,
+        "vlm": null
+      },
+      {
+        "rank": 3,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.381,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 4,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.38,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 5,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.375,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 6,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "araba",
+        "cos": 0.374,
+        "vlm": {
+          "object_present": true,
+          "color_match": true,
+          "confidence": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "id": "f2_ctrl_otobus",
+    "bucket": "positive_ctrl",
+    "query": "otobüs",
+    "english": "bus",
+    "ask_color": false,
+    "candidates": [
+      {
+        "rank": 1,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "otobüs",
+        "cos": 0.366,
+        "vlm": {
+          "object_present": true,
+          "color_match": null,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 2,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "otobüs",
+        "cos": 0.366,
+        "vlm": {
+          "object_present": true,
+          "color_match": "blue",
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 3,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "otobüs",
+        "cos": 0.362,
+        "vlm": {
+          "object_present": true,
+          "color_match": "teal",
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 4,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "otobüs",
+        "cos": 0.361,
+        "vlm": {
+          "object_present": true,
+          "color_match": null,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 5,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "otobüs",
+        "cos": 0.359,
+        "vlm": {
+          "object_present": true,
+          "color_match": null,
+          "confidence": 1.0
+        }
+      }
+    ]
+  },
+  {
+    "id": "f2_ctrl_yuruyen_insan",
+    "bucket": "positive_ctrl",
+    "query": "yürüyen insan",
+    "english": "walking person",
+    "ask_color": false,
+    "candidates": [
+      {
+        "rank": 1,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.384,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 2,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.383,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      },
+      {
+        "rank": 3,
+        "video": "meva_hastane1",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.374,
+        "vlm": {
+          "object_present": true,
+          "color_match": null,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 4,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "insan",
+        "cos": 0.36,
+        "vlm": {
+          "object_present": false,
+          "color_match": null,
+          "confidence": 0.0
+        }
+      }
+    ]
+  },
+  {
+    "id": "f2_ctrl_kamyon",
+    "bucket": "positive_ctrl",
+    "query": "kamyon",
+    "english": "truck",
+    "ask_color": false,
+    "candidates": [
+      {
+        "rank": 1,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "cos": 0.363,
+        "vlm": {
+          "object_present": true,
+          "color_match": "blue",
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 2,
+        "video": "ucf_trafik",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "cos": 0.341,
+        "vlm": {
+          "object_present": true,
+          "color_match": null,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 3,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "cos": 0.329,
+        "vlm": {
+          "object_present": true,
+          "color_match": null,
+          "confidence": 1.0
+        }
+      },
+      {
+        "rank": 4,
+        "video": "VIRAT_otopark",
+        "source": "crop",
+        "yolo_class": "kamyon",
+        "cos": 0.328,
+        "vlm": {
+          "object_present": true,
+          "color_match": null,
+          "confidence": 1.0
+        }
+      }
+    ]
+  }
+]

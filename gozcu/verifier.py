@@ -61,12 +61,17 @@ def verify_hit(hit: dict, english_desc: str, ask_color: bool) -> dict | None:
         "keep_alive": settings.vlm_keep_alive,
         "options": {"temperature": 0},
     }
-    try:
-        resp = requests.post(settings.vlm_url, json=payload, timeout=settings.vlm_timeout_s)
-        resp.raise_for_status()
-        content = resp.json()["message"]["content"]
-        verdict = json.loads(content)
-    except Exception:
+    # ── Tek retry: CLIP+VLM eşzamanlı GPU baskısında ara sıra timeout/500 olur ──
+    verdict = None
+    for _attempt in range(2):
+        try:
+            resp = requests.post(settings.vlm_url, json=payload, timeout=settings.vlm_timeout_s)
+            resp.raise_for_status()
+            verdict = json.loads(resp.json()["message"]["content"])
+            break
+        except Exception:
+            continue
+    if verdict is None:
         return None
     # ── Normalleştir ──
     return {

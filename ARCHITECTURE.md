@@ -200,5 +200,11 @@ Eval'in CLIP ile kapatılamayan açıkları: negasyon örtüşmesi (köpek/yağm
   ölçülür; düşükse renk advisory-with-confidence kalır, hard-filtre edilmez.
 - **LLM sorgu-ayrıştırıcı (Qwen3-4B) ERTELENDİ:** kural-bazlı çalışıyor + 4B+2B+CLIP
   aynı VRAM'e sığmaz.
-- Ölçüm (bekliyor): negasyon false-accept oranı + öznitelik renk-precision, use_vlm
-  False vs True eşleştirilmiş McNemar. `eval/queries_faz2.yaml`, `eval/faz2_eval.py`.
+- **Ölçüldü (gözle doğrulandı):** negasyon güçlü — "köpek gezdiren adam"→BULUNAMADI,
+  yağmur 0/6 kabul (kapının çözemediğini VLM kapattı); renk — VLM CLIP'in hatalarını
+  düzeltiyor ("mavi kamyonet"te CLIP 4 aday, VLM 1 gerçek maviyi onayladı, 3 sahteyi
+  reddetti; siyah/beyaz/mavi 3 renk de gözle doğru). Pozitif kontrol otobüs 5/5, kamyon
+  4/4 (yanlış-reddetme yok). Dürüst sınır: kar 2/6 false-accept (açık zemin→"kar"),
+  küçük/bulanık insan over-reject (ama koşullu tetik bunları dışlıyor).
+- **Güvenilirlik:** CLIP+VLM 8GB'de eşzamanlı → çağrı spike'ları; `vlm_timeout_s=45` +
+  tek retry ile tek-sorgu (prod) 0/8 hata. Detay: `experiments/2026-07-04_faz2_vlm/`.
