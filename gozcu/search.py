@@ -4,7 +4,7 @@ Embedder ve FrameStore tembel tekil (lazy singleton) olarak yüklenir:
 model ~2 GB olduğundan yalnızca ilk aramada belleğe alınır.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from gozcu.config import settings
 from gozcu.query import (
@@ -32,6 +32,11 @@ def _vlm_ready() -> bool:
     return _vlm_available
 
 
+def vlm_available() -> bool:
+    """Ollama + VLM hazır mı (viewer VLM bölümünü gösterip göstermeyeceğine karar verir)."""
+    return _vlm_ready()
+
+
 def get_embedder():
     global _embedder
     if _embedder is None:
@@ -55,7 +60,9 @@ class SearchOutcome:
     results: list[dict]          # store.search çıktısı (payload + score)
     parsed: ParsedQuery          # hangi görsel metin / zaman aralığı kullanıldı
     time_filter_dropped: bool    # zaman filtresi sıfır sonuç verdi, filtresiz tekrarlandı
-    not_found_reason: str | None = None  # bulunamadı kapısı tetiklendiyse gerekçe
+    not_found_reason: str | None = None  # bulunamadı kapısı / VLM tetiklendiyse gerekçe
+    vlm_applied: bool = False    # VLM doğrulaması uygulandı mı (viewer rozeti için)
+    vlm_filtered: list[dict] = field(default_factory=list)  # VLM'in elediği adaylar (expander)
 
 
 def _intent_rerank(hits: list[dict], intent: str, lam: float) -> None:
@@ -129,17 +136,19 @@ def _apply_vlm(results: list[dict], visual_text: str) -> tuple[list[dict], str |
     head, tail = results[: settings.vlm_top_n], results[settings.vlm_top_n:]
 
     survivors: list[dict] = []
+    filtered: list[dict] = []
     for h in head:
         v = verify_hit(h, en, ask_color)
         h["_vlm"] = v
         # Negasyon modu: yüksek-güvenle "eşleşmiyor" → düşür (renk modunda düşürme)
         if v and not ask_color and v["confidence"] < settings.vlm_drop_below:
+            filtered.append(h)
             continue
         survivors.append(h)
 
     # ── Negasyonda head tümü düştüyse: konsept korpusta yok → bulunamadı ──
     if not ask_color and head and not survivors:
-        return [], "VLM: tanımlanan sahne/nesne görüntülerde doğrulanamadı."
+        return [], filtered, "VLM: tanımlanan sahne/nesne görüntülerde doğrulanamadı."
 
     # ── Sınırlı rerank (z-normalize cosine + eşleşme bonusu) ──
     if survivors:
@@ -157,7 +166,23 @@ def _apply_vlm(results: list[dict], visual_text: str) -> tuple[list[dict], str |
                 bonus = settings.vlm_beta * v["confidence"] * signal
             h["_vrank"] = (h["score"] - mean) / std + bonus
         survivors.sort(key=lambda x: -x["_vrank"])
-    return survivors + tail, None
+    return survivors + tail, filtered, None
+
+
+def refine_vlm(outcome: SearchOutcome) -> SearchOutcome:
+    """CLIP sonucunu VLM ile rafine et — progressive/async ikinci faz (ARCHITECTURE.md §8).
+
+    Viewer önce `search(use_vlm=False)` ile CLIP'i ANINDA gösterir, sonra bunu çağırıp
+    VLM-doğrulanmış sonucu günceller. needs_vlm değil / VLM hazır değil / sonuç yok →
+    outcome'u AYNEN döner (ucuz no-op, çağrı güvenli).
+    """
+    text = outcome.parsed.visual_text or ""
+    if not outcome.results or not needs_vlm(text) or not _vlm_ready():
+        return outcome
+    results, filtered, nf = _apply_vlm(outcome.results, text)
+    return SearchOutcome(results=results, parsed=outcome.parsed,
+                         time_filter_dropped=outcome.time_filter_dropped, not_found_reason=nf,
+                         vlm_applied=True, vlm_filtered=filtered)
 
 
 def search(raw_query: str, top_k: int | None = None, source: str | None = None,
@@ -217,10 +242,10 @@ def search(raw_query: str, top_k: int | None = None, source: str | None = None,
     # ── 6. Kare tekilleştirme + zaman kümeleme (_rank üzerinden sıralar) ──
     results = _dedup_and_group(results, top_k)
 
-    # ── 7. Faz 2 VLM doğrulama (koşullu: prod + renk/zor-kavram + Ollama ayakta) ──
-    vlm_not_found = None
-    if source is None and use_vlm and results and needs_vlm(text) and _vlm_ready():
-        results, vlm_not_found = _apply_vlm(results, text)
+    outcome = SearchOutcome(results=results, parsed=parsed,
+                            time_filter_dropped=time_filter_dropped)
 
-    return SearchOutcome(results=results, parsed=parsed, time_filter_dropped=time_filter_dropped,
-                         not_found_reason=vlm_not_found)
+    # ── 7. Faz 2 VLM doğrulama (senkron; viewer progressive için refine_vlm'i ayrı çağırır) ──
+    if source is None and use_vlm:
+        outcome = refine_vlm(outcome)
+    return outcome

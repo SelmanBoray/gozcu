@@ -208,3 +208,20 @@ Eval'in CLIP ile kapatılamayan açıkları: negasyon örtüşmesi (köpek/yağm
   küçük/bulanık insan over-reject (ama koşullu tetik bunları dışlıyor).
 - **Güvenilirlik:** CLIP+VLM 8GB'de eşzamanlı → çağrı spike'ları; `vlm_timeout_s=45` +
   tek retry ile tek-sorgu (prod) 0/8 hata. Detay: `experiments/2026-07-04_faz2_vlm/`.
+
+### 8b. Async rafine — progressive render (viewer, 5 Temmuz 2026)
+
+VLM latency ~4-6s/görüntü (bottleneck token DEĞİL, **görüntü prefill'i** — num_predict/boyut
+düşürme fayda etmedi), top-8 ~30s. İnteraktif için bloklamamalı. AI Engineer: gerçek thread
+DEĞİL, **progressive render** (tek-kullanıcı demo için thread kırılganlığı gereksiz).
+
+- `search()` bölündü: `search(use_vlm=False)` (CLIP, ~0.1s) + public `refine_vlm(outcome)`
+  (VLM ikinci faz). `search(use_vlm=True)` = ikisi (CLI senkron kalır).
+- **Viewer:** CLIP sonucu ANINDA `st.empty` slot'a → `st.status` altında VLM koşar →
+  aynı slot'u VLM sonucuyla YERİNDE değiştirir (iki bölüm değil). Elenenler `expander`'da
+  ("VLM elenenler" — sessizce kaybolmasın, CLIP ham recall'ı görünsün).
+- **Cache ZORUNLU:** `@st.cache_data` (sorgu,top_k) — her rerun (Oynat tıklaması) VLM'i
+  yeniden koşmasın. `st.form` submit — keystroke başına arama yok.
+- Prompt sıkılaştırıldı: "açıklamanın HER parçası görünmeli" → negasyon kısmi-eşleşme
+  false-accept'i düzeldi (köpek/yağmur → BULUNAMADI, öznitelik bozulmadan).
+- Paralel VLM YOK (Ollama tek model, KV slot şişmesi → OOM riski). Sıralı + streaming.

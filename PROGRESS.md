@@ -1,5 +1,20 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 5 Temmuz 2026 — Async VLM rafine: progressive render (interaktif latency çözüldü)
+
+- AI Engineer: gerçek thread değil **progressive render** (tek-kullanıcı demo). VLM latency
+  ~4-6s/görüntü — bottleneck token DEĞİL görüntü prefill'i (num_predict:48 denendi, latency
+  düşmedi + JSON'u kesti → geri alındı; out_size 384/256/224 fark etmiyor, VLM içeride resize).
+- `search()` bölündü: `search(use_vlm=False)` (CLIP hızlı) + public `refine_vlm(outcome)`.
+  `SearchOutcome`'a `vlm_applied` + `vlm_filtered` (elenenler expander için).
+- **Viewer yeniden yazıldı:** `st.form` submit (keystroke rerun yok), `@st.cache_data`
+  (Oynat tıklaması VLM'i yeniden koşmasın — kritik), CLIP `st.empty` slot'a anında →
+  `st.status` altında VLM → aynı slot yerinde değişir, elenenler expander'da.
+- **Prompt sıkılaştırıldı** ("açıklamanın HER parçası görünmeli"): köpek/yağmur → BULUNAMADI
+  (önce 1 kısmi-eşleşme survivor kalıyordu), siyah SUV öznitelik bozulmadan (color_match 0.7-1.0).
+- Doğrulandı: tüm modüller derleniyor, Streamlit HTTP 200 başlıyor, SearchOutcome pickle'lanıyor
+  (cache güvenli). CLI senkron kalır. Paralel VLM yok (Ollama tek model, OOM). Detay: ARCHITECTURE.md §8b
+
 ## 4 Temmuz 2026 (gece) — Faz 2 VLM doğrulayıcı: negasyon çözüldü, retrieve-then-verify
 
 - AI Engineer tasarımı: `qwen3-vl:2b` (Ollama, 1.9GB — CLIP ile eşzamanlı sığan tek

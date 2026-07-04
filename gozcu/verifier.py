@@ -38,8 +38,9 @@ def _prompt(english_desc: str, ask_color: bool) -> str:
         f"{color_line}"
         '"confidence": your certainty from 0.0 to 1.0 that the FULL description matches '
         "this image (1.0 = clearly matches, 0.0 = clearly does NOT match)}\n"
-        "Be strict: only high confidence when clearly and unambiguously matching. "
-        "If the described subject is absent, set object_present false AND confidence near 0."
+        "Be strict: EVERY element of the description must be clearly visible. If ANY part "
+        "is missing (e.g. a dog is described but no dog is visible, even if a person is), "
+        "set object_present false AND confidence near 0. When unsure, answer false."
     )
 
 
@@ -59,6 +60,8 @@ def verify_hit(hit: dict, english_desc: str, ask_color: bool) -> dict | None:
         "format": "json",
         "stream": False,
         "keep_alive": settings.vlm_keep_alive,
+        # Latency bottleneck token üretimi DEĞİL görüntü prefill'i (vision encoding) —
+        # num_predict cap latency'yi düşürmedi + JSON'u kesti. num_predict yok.
         "options": {"temperature": 0},
     }
     # ── Tek retry: CLIP+VLM eşzamanlı GPU baskısında ara sıra timeout/500 olur ──
