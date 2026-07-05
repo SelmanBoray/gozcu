@@ -111,3 +111,19 @@ def is_available() -> bool:
                    for m in tags.get("models", []))
     except Exception:
         return False
+
+
+def warmup() -> bool:
+    """Modeli önceden GPU'ya yükle (dummy inference) → gerçek ilk sorgu asla cold olmaz.
+    Uygulama açılışında bir kez çağrılır (viewer). Ollama yoksa sessizce False."""
+    try:
+        payload = {
+            "model": settings.vlm_model,
+            "messages": [{"role": "user", "content": "hi"}],
+            "stream": False, "keep_alive": settings.vlm_keep_alive,
+            "options": {"num_predict": 1},
+        }
+        r = requests.post(settings.vlm_url, json=payload, timeout=90)
+        return r.status_code == 200
+    except Exception:
+        return False

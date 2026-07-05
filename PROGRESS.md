@@ -1,5 +1,24 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 5 Temmuz 2026 (gece-3) — "Mükemmelleştirme" turu: Kararlılık (AI Engineer planı, 1/4)
+
+- Selman "mükemmel hale getirelim" dedi, 4 alan seçildi (UX/kararlılık/VLM doğruluğu/korpus).
+  AI Engineer'a danışıldı, sıra: **Kararlılık → Korpus → VLM doğruluğu (tam-kare) → UX**.
+- **Kök sorun:** Ollama %91 VRAM'de arka plan GPU uygulamalarıyla OOM çöküyor → tüm kartlar
+  "doğrulanamadı" (bugün bizzat çarpıldı). AI Engineer: CLIP'i CPU'ya al (GPU'yu VLM'e bırak).
+- **CLIP→CPU DENENDİ, ELENDİ:** jina-clip-v2 text tower CPU'da sabit **~13s/çağrı** (561M×512
+  token, thread/MKL fark etmiyor) — interaktif aramayı öldürür. GPU'da 286ms. VRAM ölçümü:
+  CLIP CPU'da → 7445→5932 MiB (co-residency çözülür) AMA 13s bedeli kabul edilemez.
+- **Çözüm — çökmeyi ÖNLE değil ZARİFÇE KURTAR** (CLIP GPU'da kalır):
+  - **Self-healing `is_available`** (`search.py`): kısa TTL (30s) + hata-anında reset. "Bir
+    kez False→hep False" bug'ı bitti; çökme/geri-gelme otomatik iyileşir.
+  - **Ayrık çökme UX'i:** tekil verify-fail = kart rozeti; TOPTAN VLM-down = global banner
+    "VLM kapalı → yalnız CLIP" (`SearchOutcome.vlm_unavailable`, `viewer.render_final`).
+  - **Açılış warmup** (`verifier.warmup` + `viewer._warmup_vlm` arka plan thread) → ilk sorgu cold değil.
+  - **timeout 20→30s** (yalnız emniyet). Supervised Ollama (masaüstü uygulaması auto-restart).
+- **Test:** Ollama down iken → vlm_available False, CLIP-only sonuç, kartlarda _vlm yok, banner
+  tetiklenir. Ollama up → normal. GPU encode warm 286ms. Detay: ARCHITECTURE.md §8.
+
 ## 5 Temmuz 2026 (gece-2) — "kırmızı kıyafetli adam" hâlâ araba gösteriyordu: 3 UI/füzyon düzeltmesi
 
 - Selman bir önceki turdan sonra hâlâ kırmızı araba görüyordu. **Tarayıcıyla bizzat

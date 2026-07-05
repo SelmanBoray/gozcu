@@ -227,8 +227,16 @@ Eval'in CLIP ile kapatılamayan açıkları: negasyon örtüşmesi (köpek/yağm
   car" color 0/9 (renk ayrımı), "dog" present 0/9 (nesne ayrımı). Uçtan uca: "köpek gezdiren
   insan"→hedef `dog`, CLIP'in 5 adayından **4 yanlış-pozitif elendi**, 1 köpekli kaldı.
 - **Güvenilirlik:** non-thinking + `num_predict:4` → **%100 geçerli** (thinking-loop yok).
-  Latency atomik yes/no ~2-5s; renk sorgusu kart başına 2 çağrı (~7s), top-8 ~50s (cold-load
-  dahil) → per-item streaming maskeler. `vlm_timeout_s=20`. Detay: `experiments/2026-07-05_vlm_latency/`.
+  Latency atomik yes/no ~0.3-2s (warm); renk sorgusu kart başına 2 çağrı, top-12 ~30-50s →
+  per-item streaming maskeler. `vlm_timeout_s=30` (yalnız emniyet, warmup cold-path'i yok eder).
+- **VRAM co-residency + zarif-çökme (5 Tmz):** 8GB'da CLIP (~2GB) + qwen2.5vl (2.9GB) + arka
+  plan GPU uygulamaları ara sıra OOM → Ollama çöker. CLIP'i CPU'ya almak DENENDİ (jina text
+  tower CPU'da ~13s/çağrı — interaktif aramayı öldürür, elendi). Çözüm: çökmeyi ÖNLEMEK
+  yerine ZARİFÇE KURTARMAK — (1) **self-healing `is_available`**: kısa TTL + hata-anında reset
+  ("bir kez False→hep False" bug'ı bitti, çökme sonrası ilk sorgu iyileşir); (2) **ayrık UX**:
+  tekil verify-fail = kart rozeti, TOPTAN VLM-down = global banner "VLM kapalı → yalnız CLIP"
+  (`SearchOutcome.vlm_unavailable`); (3) **açılış warmup** (arka plan thread, ilk sorgu cold
+  değil); (4) **supervised Ollama** (masaüstü uygulaması server'ı otomatik yeniden başlatır).
 
 ### 8b. Async rafine — progressive render (viewer, 5 Temmuz 2026)
 

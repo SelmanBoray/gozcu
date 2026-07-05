@@ -20,7 +20,12 @@ class Settings(BaseSettings):
     # ── Embedding modeli ──
     model_id: str = "jinaai/jina-clip-v2"
     embed_dim: int = 1024
-    device: str = "auto"  # "auto" | "cuda" | "cpu"
+    device: str = "auto"  # indeksleme (görüntü embed) cihazı: "auto" | "cuda" | "cpu"
+    # Sorgu-anı metin embed cihazı. CLIP'i CPU'ya alıp GPU'yu VLM'e bırakmak DENENDİ ama
+    # jina-clip-v2 text tower CPU'da sabit ~13s/çağrı (561M param × 512 token) — interaktif
+    # aramayı öldürüyor. GPU'da ~50ms. Co-residency OOM'u bunun yerine zarif-çökme handling
+    # ile ele alınıyor (self-healing is_available + banner + warmup + supervised Ollama).
+    query_device: str = "auto"  # "auto"(=cuda) | "cuda" | "cpu"(yalnız GPU'suz makine)
     batch_size_gpu: int = 16
     batch_size_cpu: int = 4
 
@@ -73,7 +78,7 @@ class Settings(BaseSettings):
     vlm_top_n: int = 12                   # doğrulanan aday sayısı = default_top_k (kuyruk sızıntısı yok)
     vlm_drop_below: float = 0.3           # negasyon: eşleşme-güveni bu altındaysa düşür (absent)
     vlm_beta: float = 0.5                 # öznitelik rerank ağırlığı (skor-boşluğundan kalibre)
-    vlm_timeout_s: float = 20.0           # atomik yes/no ~2-5s; 20s cold-load + baskı payı
+    vlm_timeout_s: float = 30.0           # atomik yes/no ~0.3-2s (warm); 30s yalnız emniyet (cold/hang)
 
 
 settings = Settings()

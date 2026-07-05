@@ -26,6 +26,16 @@ from gozcu.search import stream_verify, vlm_available
 st.set_page_config(page_title="Gözcü", page_icon="👁️", layout="wide")
 
 
+@st.cache_resource(show_spinner=False)
+def _warmup_vlm() -> bool:
+    """Açılışta VLM'i ARKA PLANDA ısıt (thread → UI'ı bloke etmez). Kullanıcı sorguyu
+    yazarken model yüklenir; ilk gerçek sorgu cold olmaz. cache_resource: süreçte bir kez."""
+    import threading
+    from gozcu.verifier import warmup
+    threading.Thread(target=warmup, daemon=True).start()
+    return True
+
+
 @st.cache_data(show_spinner=False)
 def clip_search(query: str, top_k: int):
     """CLIP-only arama (hızlı) — anında gösterim + rerun'da yeniden koşmasın."""
@@ -111,9 +121,21 @@ def render_outcome(outcome, note: str) -> None:
                 st.caption(f"{h['video_id']} · CLIP skor {h['score']:.3f} · VLM: eşleşme yok")
 
 
+def render_final(outcome) -> None:
+    """Final render: VLM çöktüyse (vlm_unavailable) banner + CLIP; değilse VLM-doğrulandı notu."""
+    if outcome.vlm_unavailable:
+        st.warning("⚠️ VLM doğrulama sırasında Ollama erişilemez oldu — yalnız CLIP sıralaması "
+                   "gösteriliyor.")
+        render_outcome(outcome, "")
+    else:
+        render_outcome(outcome, "🔍 VLM ile doğrulandı")
+
+
 # ── Sayfa ──
 st.title("👁️ Gözcü")
 st.caption("Kamera arşivinde Türkçe doğal dil arama — her şey lokalde, hiçbir veri dışarı çıkmaz.")
+
+_warmup_vlm()  # açılışta VLM'i arka planda ısıt (bir kez, bloke etmez)
 
 with st.form("arama"):
     col_q, col_k = st.columns([5, 1])
@@ -132,17 +154,23 @@ q = st.session_state.get("query")
 if q:
     k = st.session_state.get("top_k", settings.default_top_k)
     clip_outcome = clip_search(q, k)
-    will_verify = bool(clip_outcome.results) and needs_vlm(
-        clip_outcome.parsed.visual_text or "") and vlm_available()
+    wants_vlm = bool(clip_outcome.results) and needs_vlm(clip_outcome.parsed.visual_text or "")
+    vlm_up = vlm_available()
+    will_verify = wants_vlm and vlm_up
     vkey = f"vlm::{q}::{k}"
     slot = st.empty()
+
+    # ── VLM istendi ama erişilemez (Ollama kapalı/çökük) → global banner + yalnız CLIP ──
+    if wants_vlm and not vlm_up:
+        st.warning("⚠️ VLM doğrulayıcı kapalı (Ollama erişilemedi) — yalnız CLIP sıralaması "
+                   "gösteriliyor. Ollama'yı başlatınca renk/negasyon doğrulaması devreye girer.")
 
     if not will_verify:
         with slot.container():
             render_outcome(clip_outcome, "")
     elif vkey in st.session_state:  # VLM daha önce koştu → önbellekten anında
         with slot.container():
-            render_outcome(st.session_state[vkey], "🔍 VLM ile doğrulandı")
+            render_final(st.session_state[vkey])
     else:  # ── PER-ITEM STREAMING (ilk kez) ──
         topn = clip_outcome.results[: settings.vlm_top_n]
         prog = st.progress(0.0, text=f"VLM 0/{len(topn)} doğrulanıyor…")
@@ -162,4 +190,4 @@ if q:
         st.session_state[vkey] = refined
         prog.empty()
         with slot.container():  # final reflow: yeniden sıralama + elenenler + Oynat
-            render_outcome(refined, "🔍 VLM ile doğrulandı")
+            render_final(refined)

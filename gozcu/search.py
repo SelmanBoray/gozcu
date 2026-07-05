@@ -4,6 +4,7 @@ Embedder ve FrameStore tembel tekil (lazy singleton) olarak yüklenir:
 model ~2 GB olduğundan yalnızca ilk aramada belleğe alınır.
 """
 
+import time
 from dataclasses import dataclass, field
 
 from gozcu.config import settings
@@ -21,15 +22,31 @@ from gozcu.query import (
 # ── Tembel tekiller ──
 _embedder = None
 _store = None
-_vlm_available: bool | None = None  # Ollama erişilebilirliği (süreç başına bir kez)
+
+# ── VLM erişilebilirliği: SELF-HEALING (kalıcı cache DEĞİL) ──
+# Eski bug: "bir kez False → hep False" (Ollama çökünce/gelince UI kilitleniyordu).
+# Çözüm: kısa TTL (yeniden yoklama) + hata-anında reset (çökme sonrası ilk sorgu iyileşir).
+_vlm_available: bool | None = None
+_vlm_checked_at: float = 0.0
+_VLM_TTL_S: float = 30.0
 
 
-def _vlm_ready() -> bool:
-    global _vlm_available
-    if _vlm_available is None:
+def _vlm_ready(force: bool = False) -> bool:
+    global _vlm_available, _vlm_checked_at
+    now = time.time()
+    if force or _vlm_available is None or (now - _vlm_checked_at) > _VLM_TTL_S:
         from gozcu.verifier import is_available
         _vlm_available = is_available()
+        _vlm_checked_at = now
     return _vlm_available
+
+
+def _mark_vlm_down() -> None:
+    """Verify çağrıları toptan başarısız oldu (Ollama çökmüş olabilir) → cache'i geçersiz kıl:
+    bir sonraki sorgu yeniden yoklar (çökme sonrası otomatik iyileşme)."""
+    global _vlm_available, _vlm_checked_at
+    _vlm_available = False
+    _vlm_checked_at = 0.0
 
 
 def vlm_available() -> bool:
@@ -38,10 +55,13 @@ def vlm_available() -> bool:
 
 
 def get_embedder():
+    """Sorgu-anı embedder — CPU'da (settings.query_device). GPU'yu VLM'e bırakır:
+    sorgu yalnız metin embed'ler, görüntü vektörleri zaten Qdrant'ta. Co-residency OOM'u
+    yapısal çözüm (ARCHITECTURE.md §8). İndeksleme ayrı süreç, GPU kullanır (cli.py)."""
     global _embedder
     if _embedder is None:
         from gozcu.embedder import Embedder
-        _embedder = Embedder(device=settings.device)
+        _embedder = Embedder(device=settings.query_device)
     return _embedder
 
 
@@ -63,6 +83,7 @@ class SearchOutcome:
     not_found_reason: str | None = None  # bulunamadı kapısı / VLM tetiklendiyse gerekçe
     vlm_applied: bool = False    # VLM doğrulaması uygulandı mı (viewer rozeti için)
     vlm_filtered: list[dict] = field(default_factory=list)  # VLM'in elediği adaylar (expander)
+    vlm_unavailable: bool = False  # VLM toptan erişilemedi (Ollama çökük) → global banner
 
 
 def _intent_rerank(hits: list[dict], intent: str, lam: float) -> None:
@@ -185,10 +206,24 @@ def _fuse_verdicts(results: list[dict], visual_text: str) -> tuple[list[dict], l
     return survivors, filtered, None  # yalnız doğrulanmış survivor'lar (kuyruk sızıntısı yok)
 
 
-def _apply_vlm(results: list[dict], visual_text: str) -> tuple[list[dict], list[dict], str | None]:
-    """Batch: doğrula + füzyon (CLI/senkron). Streaming için stream_verify kullanılır."""
-    verify_top_n(results, visual_text)
-    return _fuse_verdicts(results, visual_text)
+def _build_verified_outcome(outcome: SearchOutcome, text: str) -> SearchOutcome:
+    """verify_top_n SONRASI: toptan-çökme tespiti + füzyon → rafine SearchOutcome.
+
+    Toptan çökme: doğrulanan top-N'in HEPSİ None ve VLM artık erişilemez (Ollama çöktü) →
+    `vlm_unavailable` (global banner), per-kart 'doğrulanamadı' gösterme, CLIP sırasını koru.
+    Tekil None (recrop/timeout) ise füzyonda korunur (kart rozeti)."""
+    verified = outcome.results[: settings.vlm_top_n]
+    if verified and all(h.get("_vlm") is None for h in verified) and not _vlm_ready(force=True):
+        _mark_vlm_down()
+        for h in outcome.results:
+            h.pop("_vlm", None)  # rozet gösterme; banner gösterilecek
+        return SearchOutcome(results=outcome.results, parsed=outcome.parsed,
+                             time_filter_dropped=outcome.time_filter_dropped,
+                             vlm_applied=False, vlm_unavailable=True)
+    results, filtered, nf = _fuse_verdicts(outcome.results, text)
+    return SearchOutcome(results=results, parsed=outcome.parsed,
+                         time_filter_dropped=outcome.time_filter_dropped, not_found_reason=nf,
+                         vlm_applied=True, vlm_filtered=filtered)
 
 
 def stream_verify(outcome: SearchOutcome, on_verdict=None) -> SearchOutcome:
@@ -198,10 +233,7 @@ def stream_verify(outcome: SearchOutcome, on_verdict=None) -> SearchOutcome:
     if not outcome.results or not needs_vlm(text) or not _vlm_ready():
         return outcome
     verify_top_n(outcome.results, text, on_verdict)
-    results, filtered, nf = _fuse_verdicts(outcome.results, text)
-    return SearchOutcome(results=results, parsed=outcome.parsed,
-                         time_filter_dropped=outcome.time_filter_dropped, not_found_reason=nf,
-                         vlm_applied=True, vlm_filtered=filtered)
+    return _build_verified_outcome(outcome, text)
 
 
 def refine_vlm(outcome: SearchOutcome) -> SearchOutcome:
@@ -214,10 +246,8 @@ def refine_vlm(outcome: SearchOutcome) -> SearchOutcome:
     text = outcome.parsed.visual_text or ""
     if not outcome.results or not needs_vlm(text) or not _vlm_ready():
         return outcome
-    results, filtered, nf = _apply_vlm(outcome.results, text)
-    return SearchOutcome(results=results, parsed=outcome.parsed,
-                         time_filter_dropped=outcome.time_filter_dropped, not_found_reason=nf,
-                         vlm_applied=True, vlm_filtered=filtered)
+    verify_top_n(outcome.results, text)
+    return _build_verified_outcome(outcome, text)
 
 
 def search(raw_query: str, top_k: int | None = None, source: str | None = None,
