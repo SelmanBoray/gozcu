@@ -20,7 +20,8 @@ import streamlit as st
 
 from gozcu.config import settings
 from gozcu.query import needs_vlm
-from gozcu.search import clear_stream_job, get_stream_job, start_stream_job, vlm_available
+from gozcu.search import (clear_stream_job, cluster_events, get_stream_job, start_stream_job,
+                          vlm_available)
 from gozcu.search import search as run_search
 
 st.set_page_config(page_title="Gözcü", page_icon="👁️", layout="wide")
@@ -127,14 +128,35 @@ def parse_info(outcome, note: str) -> None:
         st.warning("Zaman aralığında sonuç yok — tüm arşivde arandı.")
 
 
+def render_timeline(results: list[dict]) -> None:
+    """Zaman çizelgesi: sonuçları olaylara kümele, ilk/son görülme göster (zaman grounding).
+    KİMLİK TAKİBİ YOK — 'girdi/çıktı' değil, dürüst 'görülme'. AI Engineer #3."""
+    events = cluster_events(results)
+    if not events:
+        return
+    with st.expander(f"🕐 Zaman çizelgesi ({len(events)} olay) — "
+                     f"_kimlik takibi yok; zaman-yakınlığına göre gruplanır_", expanded=True):
+        for e in events:
+            first = datetime.fromtimestamp(e["first_ts"])
+            last = datetime.fromtimestamp(e["last_ts"])
+            if e["count"] == 1 or e["first_ts"] == e["last_ts"]:
+                when = f"**{first:%d.%m %H:%M:%S}**'te görüldü"
+            else:
+                dur = int(e["last_ts"] - e["first_ts"])
+                when = (f"İlk **{first:%d.%m %H:%M:%S}** · Son **{last:%H:%M:%S}** "
+                        f"(~{dur}s, {e['count']} kare)")
+            st.caption(f"📹 {e['video_id']} — {when}")
+
+
 def render_outcome(outcome, note: str) -> None:
-    """Final görünüm: parse özeti + (bulunamadı / ızgara) + elenenler expander."""
+    """Final görünüm: parse özeti + zaman çizelgesi + (bulunamadı / ızgara) + elenenler expander."""
     parse_info(outcome, note)
     if outcome.not_found_reason:
         st.info(f"🔍 **Bulunamadı** — {outcome.not_found_reason}")
     elif not outcome.results:
         st.error("Sonuç yok. Önce `python -m gozcu index <klasör>` ile indeksleyin.")
     else:
+        render_timeline(outcome.results)  # 🕐 zaman çizelgesi (ne zaman görüldü)
         sel = st.session_state.get("selected")
         if sel is not None:
             when = datetime.fromtimestamp(sel["ts"]).strftime("%d.%m.%Y %H:%M:%S")

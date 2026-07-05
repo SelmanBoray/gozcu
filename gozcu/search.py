@@ -6,6 +6,7 @@ model ~2 GB olduğundan yalnızca ilk aramada belleğe alınır.
 
 import threading
 import time
+from collections import defaultdict
 from dataclasses import dataclass, field
 
 from gozcu.config import settings
@@ -110,6 +111,40 @@ def _intent_rerank(hits: list[dict], intent: str, lam: float) -> None:
     for h in hits:
         z = (h["score"] - mean) / std
         h["_rank"] = z + (lam if h.get("source") == "frame" else 0.0)
+
+
+def _make_event(video_id: str, hits: list[dict]) -> dict:
+    """Bir olay: temsilci (en yüksek skor) + ilk/son görülme + kare sayısı."""
+    rep = max(hits, key=lambda h: h["score"])
+    return {"video_id": video_id, "rep": rep, "count": len(hits),
+            "first_ts": min(h["ts"] for h in hits), "last_ts": max(h["ts"] for h in hits)}
+
+
+def cluster_events(results: list[dict], gap_s: float | None = None) -> list[dict]:
+    """Doğrulanmış sonuçları video + zaman-yakınlığıyla OLAYlara kümele (zaman grounding).
+
+    KİMLİK TAKİBİ YOK — tracking olmadan "girdi/çıktı" iddia edilemez. Bunun yerine dürüst
+    "görülme aralığı": aynı videoda ardışık hit arası boşluk > gap_s ise yeni olay. Her olay
+    ilk/son görülme + kare sayısı taşır. Saf sunum katmanı (retrieval/verify'a dokunmaz).
+    Detay: ARCHITECTURE.md §9 (AI Engineer #3).
+    """
+    gap_s = gap_s if gap_s is not None else settings.event_gap_s
+    by_video: dict[str, list[dict]] = defaultdict(list)
+    for h in results:
+        by_video[h["video_id"]].append(h)
+    events: list[dict] = []
+    for video, hits in by_video.items():
+        hits = sorted(hits, key=lambda h: h["ts"])
+        cur = [hits[0]]
+        for h in hits[1:]:
+            if h["ts"] - cur[-1]["ts"] > gap_s:  # boşluk büyük → yeni olay
+                events.append(_make_event(video, cur))
+                cur = [h]
+            else:
+                cur.append(h)
+        events.append(_make_event(video, cur))
+    events.sort(key=lambda e: -e["rep"]["score"])  # en iyi eşleşen olay üstte
+    return events
 
 
 def _dedup_and_group(hits: list[dict], top_k: int) -> list[dict]:

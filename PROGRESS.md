@@ -1,5 +1,17 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 6 Temmuz 2026 — Zaman grounding: "ne zaman görüldü" (AI Engineer #3)
+
+- Selman zaman-aralığı özelliği istedi. AI Engineer tasarımı: tracking YOK → "girdi/çıktı"
+  kimlik yalanı YAZILMAZ; dürüst **"görülme aralığı"** (zaman-yakınlığı kümeleme).
+- **`search.cluster_events`:** doğrulanmış sonuçlar video+ts'e göre olaylara bölünür
+  (ardışık boşluk > `event_gap_s=50s` → yeni olay); her olay ilk/son görülme + kare sayısı.
+  **Saf sunum katmanı** — retrieval/verify'a dokunmaz → eval %90 baseline korunur.
+- **`viewer.render_timeline`:** "İlk 21:26:07 · Son 21:28:18 (~131s, 9 kare)"; tek-hit →
+  "21:33:36'te görüldü" (sahte aralık yok). Uyarı: "kimlik takibi yok". **Ölçüldü:** kırmızı
+  araba 9 sonuç→1 olay (~131s); yürüyen insan→2 olay (VIRAT ~18s + meva tek an).
+- Detay: ARCHITECTURE.md §9. Sıradaki: #2 sorgu-ayrıştırıcı→LLM (hibrit, LLM sadece zayıf sorguda).
+
 ## 6 Temmuz 2026 — Loop iterasyonu: eval flag'i araştırıldı (mavi/teal model tavanı)
 
 - Loop çalışıyor: eval "mavi kamyonet"i flag'ledi (5 sonuç, beklenen bulunamadı) → araştırıldı.

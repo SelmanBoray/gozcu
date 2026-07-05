@@ -277,3 +277,22 @@ DEĞİL, **progressive render** (tek-kullanıcı demo için thread kırılganlı
   özne kırmızı kutuyla işaretli (hangi araç/kişi eşleşti — minik kırpık yerine bağlamlı).
 - **Latency — YOLO-presence-skip:** renk sorgusunda aday kırpığın YOLO sınıfı hedefle
   eşleşiyorsa (araba=car) presence VLM çağrısı atlanır (YOLO presence oracle'ı) → çağrılar ~yarı.
+
+## 9. Zaman grounding — "ne zaman görüldü" (6 Temmuz 2026)
+
+Nokta-hit'i olaya çevir: bir sorgunun eşleşmeleri zaman ekseninde ne zaman/ne kadar
+görüldü. Conntour-benzeri ayırt edici özellik. AI Engineer #3.
+
+- **Kimlik takibi YOK → "girdi/çıktı" YAZILMAZ (kimlik yalanı).** Tracking yapılmadı
+  (payload'da track_ids rezerve ama boş); seyrek CLIP+VLM hit'leri arası IoU-tracking
+  kırılır (dense detection gerektirir, yok). Dürüst alternatif: **"görülme aralığı"**.
+- **Kümeleme (`search.cluster_events`):** doğrulanmış sonuçlar `video_id`'ye göre gruplanır,
+  `ts`'e göre sıralanır; ardışık hit arası boşluk > `event_gap_s` (50s) → yeni **olay**.
+  Her olay: ilk/son görülme, kare sayısı, temsilci (en yüksek skor).
+- **Saf sunum katmanı** — retrieval/verify'a DOKUNMAZ → eval %90 baseline'ı kıramaz.
+- **UI (`viewer.render_timeline`):** olay başına "İlk 21:26:07 · Son 21:28:18 (~131s, 9 kare)";
+  tek-hit olayda "21:33:36'te görüldü" (sahte aralık yok). Uyarı: "kimlik takibi yok;
+  zaman-yakınlığına göre gruplanır". Ölçüldü: kırmızı araba 9 sonuç→1 olay (~131s);
+  yürüyen insan→2 olay (VIRAT ~18s + meva tek an).
+- **v1.5 (ertelendi):** olay içi bbox-merkez "ışınlanma" mesafesi > %50 kare → böl
+  (tam tracking değil, mekânsal-imkânsız birleşmeyi engelle). Eval'de konflasyon görülürse ekle.
