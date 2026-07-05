@@ -14,7 +14,7 @@ from gozcu.query import (
     VEHICLE_CLASSES,
     ParsedQuery,
     extract_object_intent,
-    extract_vqa_targets,
+    augment_intent,
     has_color,
     needs_vlm,
     parse_query,
@@ -185,7 +185,7 @@ def verify_top_n(results: list[dict], visual_text: str, on_verdict=None) -> None
     sorar (rubber-stamp/thinking-loop panzehiri — ARCHITECTURE.md §8)."""
     from gozcu.verifier import verify_hit
 
-    obj_en, color_en = extract_vqa_targets(visual_text)
+    obj_en, color_en = augment_intent(visual_text)
     for i, h in enumerate(results[: settings.vlm_top_n]):
         h["_vlm"] = verify_hit(h, obj_en, color_en)
         if on_verdict is not None:
@@ -311,7 +311,7 @@ def start_stream_job(job_id: str, outcome: SearchOutcome) -> StreamJob | None:
 
     def _worker() -> None:
         from gozcu.verifier import verify_hit
-        obj_en, color_en = extract_vqa_targets(text)
+        obj_en, color_en = augment_intent(text)
         for h in outcome.results[: settings.vlm_top_n]:
             h["_vlm"] = verify_hit(h, obj_en, color_en)  # GIL-atomik atama
         fused = _build_verified_outcome(outcome, text)

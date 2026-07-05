@@ -318,6 +318,62 @@ def extract_vqa_targets(visual_text: str) -> tuple[str | None, str | None]:
     return obj_en, color_en
 
 
+# ── LLM sorgu-ayrıştırıcı (hibrit — kurallar önce, LLM yalnız EKLER) — AI Engineer #2 ──
+# Kurallar hızlı/deterministik/test-edilmiş ve %90 eval baseline'ı taşıyor → sökülmez.
+# LLM (qwen2.5vl text-only, ZATEN yüklü → +0 VRAM) YALNIZ kurallar nesne bulamazsa (OOV nesne,
+# ör. "forklift") devreye girer → sadece EKLER, asla regres etmez. Hata/timeout → kural sonucu.
+# Not: relation/negation'da kuralların hard-concept mantığı (köpek gezdiren→dog) zaten akıllı;
+# LLM'in override'ı bunu bozabilir → o kapsam bilinçli ertelendi (yalnız-boş-nesne tetiği).
+_llm_parse_cache: dict[str, dict] = {}
+
+
+def _llm_parse(visual_text: str) -> dict | None:
+    """qwen2.5vl'e text-only sor: Türkçe sorgu → {object,color} (İngilizce). Cache'li; hata→None."""
+    import json as _json
+
+    key = _fold(visual_text)
+    if key in _llm_parse_cache:
+        return _llm_parse_cache[key]
+    try:
+        import requests
+
+        from gozcu.config import settings
+        prompt = (
+            "Extract the main search target from this Turkish surveillance-camera query.\n"
+            f'Query: "{visual_text}"\n'
+            'Reply ONLY with JSON: {"object": "<the single main object in English, singular, '
+            'lowercase, e.g. car, person, dog, truck, bicycle, forklift; null if none>", '
+            '"color": "<color in English or null>"}')
+        payload = {"model": settings.vlm_model,
+                   "messages": [{"role": "user", "content": prompt}],
+                   "format": "json", "stream": False, "keep_alive": settings.vlm_keep_alive,
+                   "options": {"temperature": 0, "num_predict": 40}}
+        r = requests.post(settings.vlm_url, json=payload, timeout=settings.vlm_timeout_s)
+        r.raise_for_status()
+        parsed = _json.loads(r.json()["message"]["content"])
+        result = {"object": (parsed.get("object") or None), "color": (parsed.get("color") or None)}
+        _llm_parse_cache[key] = result  # yalnız başarılıyı cache'le (Ollama gelince yeniden dener)
+        return result
+    except Exception:
+        return None
+
+
+def augment_intent(visual_text: str) -> tuple[str | None, str | None]:
+    """VLM verify hedefi (nesne_en, renk_en): kurallar önce; kurallar NESNE bulamazsa LLM'e düş.
+
+    Yalnız EKLER (kurallar nesne bulduysa dokunmaz → baseline korunur). LLM hatası/Ollama
+    yoksa → kural sonucu. Renk kural bulduysa korunur; LLM yalnız boş alanları doldurur.
+    """
+    obj_en, color_en = extract_vqa_targets(visual_text)
+    if obj_en is not None:
+        return obj_en, color_en  # kurallar buldu → LLM'e uğrama (baseline dokunulmaz)
+    llm = _llm_parse(visual_text)
+    if llm:
+        obj_en = llm.get("object") or obj_en
+        color_en = color_en or llm.get("color")
+    return obj_en, color_en
+
+
 def scene_or_object_intent(visual_text: str) -> str:
     """Sorgu niyeti: 'scene' | 'object' | 'neutral'.
 

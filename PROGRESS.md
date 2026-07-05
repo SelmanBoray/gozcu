@@ -1,5 +1,19 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 6 Temmuz 2026 — Hibrit LLM sorgu-ayrıştırıcı (AI Engineer #2)
+
+- Türkçe NL → yapısal niyet. AI Engineer: hibrit — kurallar önce (deterministik, baseline
+  taşıyor), LLM sadece EKLER. Muhafazakâr yorum uygulandı: **LLM yalnız kurallar NESNE
+  bulamazsa** (OOV, ör. "forklift") devreye girer → asla regres etmez.
+- **`query.augment_intent` + `_llm_parse`:** qwen2.5vl text-only (ZATEN yüklü → +0 VRAM),
+  format:json → {object,color} (İngilizce), cache'li, hata/Ollama-yok → kural sonucu.
+  `search.verify_top_n`/worker artık `augment_intent` kullanır.
+- **Ölçüldü:** kural-yolu (kırmızı araba, köpek gezdiren→dog, siyah SUV) **0ms, LLM'e
+  uğramaz → eval %90 dokunulmaz**; OOV-yolu (~2.5s): forklift✓, tractor✓, vinç→car (1 kaçak,
+  ama OOV korpusta yok → önemsiz). Zaman regex'te bırakıldı (deterministik, ts-filtre besler).
+- Broader relation/negation LLM'i ERTELENDİ: kuralların hard-concept mantığı (köpek gezdiren→
+  dog) zaten akıllı; LLM override'ı bozabilir → yalnız-boş-nesne tetiği güvenli. Detay: ARCHITECTURE §4.
+
 ## 6 Temmuz 2026 — Zaman grounding: "ne zaman görüldü" (AI Engineer #3)
 
 - Selman zaman-aralığı özelliği istedi. AI Engineer tasarımı: tracking YOK → "girdi/çıktı"
