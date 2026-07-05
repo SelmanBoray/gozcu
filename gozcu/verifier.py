@@ -24,6 +24,11 @@ from gozcu.recrop import vlm_image_for_hit
 # ── Sayılamayan kavramlar: "a rain" değil "rain" (dilbilgisi VLM'i şaşırtmasın) ──
 _UNCOUNTABLE = {"rain", "snow", "traffic", "fog", "smoke"}
 
+# ── İnsan-tipi nesneler: renk GÖVDEYE değil GİYSİYE işaret eder ──
+# "kırmızı kıyafetli adam" = kırmızı giyen adam; "Is the man red?" YANLIŞ (kimse kırmızı
+# değil) → "Is the man wearing red?" DOĞRU. Araçta renk gövdedir (araba kırmızıdır).
+_PERSON_OBJECTS = {"person", "man", "woman", "child", "pedestrian", "driver", "baby"}
+
 
 def _encode(img) -> str:
     buf = io.BytesIO()
@@ -82,9 +87,14 @@ def verify_hit(hit: dict, obj_en: str | None, color_en: str | None) -> dict | No
     if present is None:
         return None  # VLM erişilemedi → dokunma
     # ── Renk yalnız nesne varsa ve renk sorulmuşsa; nesne yoksa renk anlamsız ──
+    # İnsanlarda renk giysiye işaret eder (kırmızı kıyafetli adam ≠ kırmızı adam).
     color_match = None
     if color_en and present:
-        color_match = _yesno(img_b64, f"Is the {obj} {color_en} in color?")
+        if obj in _PERSON_OBJECTS:
+            q = f"Is this {obj} wearing {color_en} clothing?"
+        else:
+            q = f"Is the {obj} {color_en} in color?"
+        color_match = _yesno(img_b64, q)
     return {
         "object_present": present,
         "color_match": color_match,

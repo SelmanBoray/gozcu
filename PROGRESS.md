@@ -1,5 +1,24 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 5 Temmuz 2026 (gece) — Selman'ın 2 sorgusu: renk-giysi + füzyon düzeltmeleri
+
+- Selman "köpek gezdiren adam" ve "kırmızı kıyafetli adam" aradı, ikisi de yanlış gösterdi.
+  Gerçek hattan teşhis edildi (2 kök sorun + 1 model tavanı):
+- **BUG 1 (düzeltildi) — renk insanlarda giysiye işaret eder:** "kırmızı kıyafetli adam"
+  VQA hedefi `('man','red')` → VLM'e "Is the man red?" soruyordu (kimse kırmızı değil→herkes
+  "no"). `verifier._PERSON_OBJECTS` eklendi: insan-tipinde "Is this man wearing red clothing?".
+- **BUG 2 (düzeltildi) — füzyon renk modunda nesne-yokluğunu düşürmüyordu:** CLIP "kırmızı"ya
+  takılıp kırmızı ARABALAR getirdi; VLM doğru `present=False` dedi ama attribute mod düşürmüyordu
+  → 7 araba gösterildi. Eski "renk modunda düşürme" tasarımı JSON rubber-stamp güvenilmezken
+  doğruydu; yes/no ile nesne-varlığı GÜVENİLİR → `_fuse_verdicts` her iki modda `conf<drop_below`
+  düşürür. Sonuç: 7 araba → 5 elendi. Regresyon yok (kırmızı araba 7/7, siyah SUV 1 eşleşmeyeni eledi).
+- **Rozet dürüstlüğü:** renk uymayınca "✅ VLM" değil "🚫 renk uymadı" (`viewer._verdict_badge`).
+- **MODEL TAVANI (kabul):** qwen2.5vl:3b küçük/bulanık kırpıkta varlık sorusunda yes-bias'lı
+  (insanda "köpek var" / arabada "adam var" yanlış-pozitif). Sıkı prompt denendi → gerçek
+  uzak-insanları da reddediyor (false-negative'e çeviriyor), temiz çözüm yok → tavan kabul.
+  Ayrıca korpusta HİÇ köpek yok → "köpek gezdiren adam" doğası gereği ~bulunamadı + gürültü.
+  Detay: `experiments/2026-07-05_vlm_latency/varlik_prompt_ab.py`.
+
 ## 5 Temmuz 2026 (akşam) — VLM güvenilirlik: thinking modeli atıldı, yes/no VQA'ya geçildi
 
 - **Sorun teşhis edildi (deterministik):** `qwen3-vl:2b` bir *thinking* modeli — belirsiz

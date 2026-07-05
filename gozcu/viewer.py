@@ -41,6 +41,8 @@ def _verdict_badge(hit: dict) -> str:
         return " · ⚠️ doğrulanamadı"       # VLM hata/timeout — kart asılı kalmasın
     if v.get("color_match") is True:
         return " · ✅ renk doğru"
+    if v.get("color_match") is False:      # renk soruldu ama uymadı — dürüst göster
+        return " · 🚫 renk uymadı"
     if v.get("object_present") and v["confidence"] >= settings.vlm_drop_below:
         return f" · ✅ VLM ({v['confidence']:.0%})"
     return " · 🚫 eşleşmedi"

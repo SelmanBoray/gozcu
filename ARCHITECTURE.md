@@ -201,11 +201,21 @@ Eval'in CLIP ile kapatılamayan açıkları: negasyon örtüşmesi (köpek/yağm
   bbox ile yeniden kırpılır (`recrop.py`, 384px). Renk/detay thumbnail'de kaybolur.
 - **Koşullu tetik:** yalnız renk/zor-kavram sorgusu (`query.needs_vlm`) + Ollama ayakta.
   Nesne/sahne sorguları zaten yüksek recall → VLM vergisi ödenmez.
+- **Renk insanlarda GİYSİYE işaret eder:** "kırmızı kıyafetli adam" ≠ kırmızı gövdeli adam.
+  İnsan-tipi nesnede (`verifier._PERSON_OBJECTS`) renk sorusu "Is this man **wearing** red
+  clothing?"; araçta "Is the car red in color?" (gövde). Yoksa herkes "no" döner (kimse
+  kırmızı değil) ve kırmızı giyen kişi hiç öne çıkmaz.
 - **Verdict:** `{object_present, color_match, confidence}`; `confidence` = 1.0 (nesne var) /
   0.0 (yok) — ayrım booleanlarda. VLM hatası → None (dokunma).
-- **Füzyon (VLM CLIP'i ezmez, düzeltir):** negasyon (renk yok) → `confidence<vlm_drop_below`
-  düşür (nesne yoksa 0.0→elenir); öznitelik (renk var) → sınırlı rerank `z(cos)+β·conf·[color
-  _match]`, düşürme yok. VLM hatası → dokunma. Ayarlar: `vlm_top_n`, `vlm_drop_below`, `vlm_beta`.
+- **Füzyon (VLM CLIP'i ezmez, düzeltir):** **nesne yokluğu her iki modda düşürülür** —
+  yes/no ile nesne-varlığı güvenilir → `confidence<vlm_drop_below` (nesne yok) elenir
+  (ör. "kırmızı kıyafetli adam"→kırmızı arabalar `present=False`→düşer). Renk yalnız rerank
+  sinyali `z(cos)+β·conf·[color_match]` (düşürmez). VLM hatası → dokunma. Hepsi düşerse →
+  bulunamadı. Ayarlar: `vlm_top_n`, `vlm_drop_below`, `vlm_beta`.
+- **Model tavanı (kabul):** küçük/bulanık kırpıkta varlık yes-bias'ı (insanda "köpek",
+  arabada "adam" yanlış-pozitif). Sıkı prompt uzak-insanı da reddediyor → temiz çözüm yok,
+  tavan kabul. Çok-nesneli sorgu (köpek gezdiren) kırpık kapsamıyla da sınırlı (köpek
+  insan-bbox'ı dışında kalabilir).
 - **LLM sorgu-ayrıştırıcı (Qwen3-4B) ERTELENDİ:** kural-bazlı çalışıyor + 4B+3B+CLIP
   aynı VRAM'e sığmaz.
 - **Ölçüldü (5 Tmz, deterministik):** ayrım kusursuz — "red car" present+color 9/9, "blue

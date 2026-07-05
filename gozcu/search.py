@@ -136,12 +136,14 @@ def verify_top_n(results: list[dict], visual_text: str, on_verdict=None) -> None
 
 
 def _fuse_verdicts(results: list[dict], visual_text: str) -> tuple[list[dict], list[dict], str | None]:
-    """Toplanmış `h['_vlm']` verdict'lerinden füzyon. İki mod (renk var mı?):
+    """Toplanmış `h['_vlm']` verdict'lerinden füzyon.
 
-    - **Negasyon** (renk yok): eşleşme-güveni `vlm_drop_below` altındaki adayı DÜŞÜR;
-      hepsi düşerse → bulunamadı.
-    - **Öznitelik** (renk var): DÜŞÜRME (renk güvenilmez) — yalnız rerank `z(cos)+β·conf·[color]`.
-    - VLM hatası (None): dokunma (CLIP sıralaması korunur).
+    - **Nesne yokluğu → DÜŞÜR (her iki modda):** yes/no VQA ile nesne-varlığı artık
+      GÜVENİLİR. `confidence < vlm_drop_below` (nesne yok) → düşür. Eski "renk modunda
+      düşürme" tasarımı, JSON rubber-stamp'i güvenilmezken doğruydu; artık geçersiz
+      (ör. "kırmızı kıyafetli adam" → kırmızı arabalar `present=False` → düşer, adam kalır).
+    - **Renk → yalnız rerank** (düşürmez, drop değil sıralama sinyali): `z(cos)+β·conf·[color]`.
+    - VLM hatası (None): dokunma (CLIP sıralaması korunur). Hepsi düşerse → bulunamadı.
     """
     ask_color = has_color(visual_text)
     head, tail = results[: settings.vlm_top_n], results[settings.vlm_top_n:]
@@ -150,13 +152,13 @@ def _fuse_verdicts(results: list[dict], visual_text: str) -> tuple[list[dict], l
     filtered: list[dict] = []
     for h in head:
         v = h.get("_vlm")
-        if v and not ask_color and v["confidence"] < settings.vlm_drop_below:
+        if v and v["confidence"] < settings.vlm_drop_below:  # nesne yok → her iki modda düşür
             filtered.append(h)
             continue
         survivors.append(h)
 
-    if not ask_color and head and not survivors:
-        return [], filtered, "VLM: tanımlanan sahne/nesne görüntülerde doğrulanamadı."
+    if head and not survivors:
+        return [], filtered, "VLM: tanımlanan nesne görüntülerde doğrulanamadı."
 
     if survivors:
         scores = [h["score"] for h in survivors]
