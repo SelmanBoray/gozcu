@@ -21,7 +21,7 @@ from gozcu.config import settings
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-app = typer.Typer(help="Gözcü — kamera arşivinde Türkçe doğal dil arama", no_args_is_help=True)
+app = typer.Typer(help="Vel'Koz — kamera arşivinde Türkçe doğal dil arama", no_args_is_help=True)
 
 VIDEO_EXTS = {".mp4", ".avi", ".mkv", ".mov", ".ts", ".dav"}
 

@@ -1,4 +1,4 @@
-# PROGRESS.md — Gözcü Proje Günlüğü
+# PROGRESS.md — Vel'Koz Proje Günlüğü
 
 ## 6 Temmuz 2026 — Hibrit LLM sorgu-ayrıştırıcı (AI Engineer #2)
 

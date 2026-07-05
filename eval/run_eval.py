@@ -1,4 +1,4 @@
-"""Gözcü retrieval eval koşucusu (AI Engineer incelemesi sonrası tam sürüm).
+"""Vel'Koz retrieval eval koşucusu (AI Engineer incelemesi sonrası tam sürüm).
 
 Metriği etiket tipine eşler (gt_type):
   class/scene → video-düzeyi Recall@k (birleşik + kare + kırpık ayrı; Faz 1.5 marjini)
@@ -267,7 +267,7 @@ def aggregate(results: list[dict]) -> dict:
 
 def write_markdown(agg: dict, results: list[dict], meta: dict) -> str:
     L: list[str] = []
-    L.append(f"# Gözcü Eval — {meta['date']}")
+    L.append(f"# Vel'Koz Eval — {meta['date']}")
     L.append("")
     L.append(f"- Sorgu: {meta['n_queries']} (skorlanabilir {meta['n_scorable']}, "
              f"advisory {meta['n_advisory']}, zaman {meta['n_zaman']}, negatif {meta['n_neg']})")

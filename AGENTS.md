@@ -1,10 +1,10 @@
-# AGENTS.md — Gözcü Projesi Çalışma Kuralları
+# AGENTS.md — Vel'Koz Projesi Çalışma Kuralları
 
 Bu dosya, projede çalışan tüm AI agentlerin uyması gereken kuralları tanımlar.
 
 ## Proje özeti
 
-Gözcü: güvenlik kamerası arşivinde Türkçe doğal dil arama motoru. Lokal-first (KVKK — görüntü müşteri binasından çıkmaz), ucuz donanım hedefi (orta seviye GPU + CPU fallback). Detay: `README.md` ve `ARCHITECTURE.md`.
+Vel'Koz: güvenlik kamerası arşivinde Türkçe doğal dil arama motoru. Lokal-first (KVKK — görüntü müşteri binasından çıkmaz), ucuz donanım hedefi (orta seviye GPU + CPU fallback). Detay: `README.md` ve `ARCHITECTURE.md`.
 
 ## Çalışma kuralları
 

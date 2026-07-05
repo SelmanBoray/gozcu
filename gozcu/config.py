@@ -1,4 +1,4 @@
-"""Gözcü yapılandırması — tüm yollar, model kimlikleri ve eşikler tek yerde.
+"""Vel'Koz yapılandırması — tüm yollar, model kimlikleri ve eşikler tek yerde.
 
 Eşik değerlerinin gerekçeleri için: ARCHITECTURE.md
 """

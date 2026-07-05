@@ -24,7 +24,7 @@ from gozcu.search import (clear_stream_job, cluster_events, get_stream_job, star
                           vlm_available)
 from gozcu.search import search as run_search
 
-st.set_page_config(page_title="Gözcü", page_icon="👁️", layout="wide")
+st.set_page_config(page_title="Vel'Koz", page_icon="👁️", layout="wide")
 
 
 @st.cache_resource(show_spinner=False)
@@ -182,8 +182,9 @@ def render_final(outcome) -> None:
 
 
 # ── Sayfa ──
-st.title("👁️ Gözcü")
-st.caption("Kamera arşivinde Türkçe doğal dil arama — her şey lokalde, hiçbir veri dışarı çıkmaz.")
+st.title("👁️ Vel'Koz")
+st.caption("Arşivini **gören ve anlayan** göz — kamera kayıtlarında Türkçe doğal dil araması. "
+           "Her şey lokalde, hiçbir veri dışarı çıkmaz.")
 
 _warmup_vlm()  # açılışta VLM'i arka planda ısıt (bir kez, bloke etmez)
 
