@@ -42,6 +42,30 @@ def clip_search(query: str, top_k: int):
     return run_search(query, top_k=top_k, use_vlm=False)
 
 
+@st.cache_data(show_spinner=False)
+def _card_image(thumb_path: str, bbox: tuple | None, dim: bool = False):
+    """Kart görseli: kırpık aday ise TAM-KARE thumb üzerine eşleşen özneyi kutuyla işaretle
+    (kullanıcı 'hangi araç/kişi' eşleşti anında görsün). dim=True → soluklaştır (streaming'de
+    reddedilen aday 'eleniyor' görünür, 'sonuç' değil)."""
+    from PIL import Image
+
+    from gozcu.recrop import draw_bbox
+    img = Image.open(thumb_path).convert("RGB")
+    if bbox:
+        img = draw_bbox(img, list(bbox))
+    if dim:
+        img = Image.blend(img, Image.new("RGB", img.size, (55, 55, 55)), 0.6)
+    return img
+
+
+# ── Aday VLM'ce reddedildi mi (nesne yok / renk uymadı) — streaming'de soluklaştırma için ──
+def _is_rejected(hit: dict) -> bool:
+    v = hit.get("_vlm")
+    if not v:
+        return False
+    return v.get("color_match") is False or not v.get("object_present")
+
+
 # ── Rozet: VLM verdict'inden (streaming ⏳ / doğrulandı ✅ / elendi 🚫) ──
 def _verdict_badge(hit: dict) -> str:
     if "_vlm" not in hit:
@@ -66,7 +90,11 @@ def render_grid(results: list[dict], done: int | None = None, buttons: bool = Tr
     for i, hit in enumerate(results):
         with cols[i % 4]:
             when = datetime.fromtimestamp(hit["ts"]).strftime("%d.%m %H:%M:%S")
-            st.image(hit["thumb_path"], use_container_width=True)
+            bbox = tuple(hit["bbox"]) if hit.get("source") == "crop" and hit.get("bbox") else None
+            # ── streaming'de doğrulanıp reddedilen kartı soluklaştır ("eleniyor") ──
+            streaming_done = done is not None and i < n and i < done
+            dim = streaming_done and _is_rejected(hit)
+            st.image(_card_image(hit["thumb_path"], bbox, dim), use_container_width=True)
             if done is not None and i < n:
                 badge = " · ⏳" if i >= done else _verdict_badge(hit)
             elif done is not None:

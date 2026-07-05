@@ -1,5 +1,19 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 5 Temmuz 2026 (gece-5) — UX cilası: bbox-vurgulu kart görseli (3/4, kısmi)
+
+- **Kart görseli artık bbox-vurgulu:** kırpık aday için tam-kare thumb üzerine eşleşen özneyi
+  KIRMIZI KUTUYLA işaretle (`viewer._card_image` + `recrop.draw_bbox`). Kullanıcı "hangi
+  araç/kişi eşleşti" anında görüyor — minik kırpık/meşgul sahne yerine bağlamlı. **Tarayıcıyla
+  doğrulandı:** "siyah SUV" → her kartta dark SUV'un etrafında kutu + "✅ renk doğru". Net kazanç.
+- **Streaming'de reddedileni soluklaştırma** (`_card_image(dim=True)` + `_is_rejected`): doğrulanıp
+  reddedilen kart "eleniyor" görünür ('sonuç' değil).
+- **BİLİNEN SINIR (gelecek iş):** senkron `stream_verify` ~40s ana thread'i bloke ediyor →
+  verification sırasında tarayıcı donuyor (CDP screenshot timeout). AI Engineer çözümü: worker
+  thread + `st.fragment(run_every=0.5s)`. Yüksek riskli rework olduğu için ayrı, odaklı bir
+  oturuma bırakıldı — mevcut akış DOĞRU sonuç üretiyor (yalnız verification boyunca janky).
+  Latency kaynağı: vlm_top_n=12 × ~2 çağrı; vlm_top_n düşürülerek de kısaltılabilir.
+
 ## 5 Temmuz 2026 (gece-4) — VLM doğruluğu: hibrit doğrulama görüntüsü (2/4)
 
 - AI Engineer (b): kırpık yerine tam-kare+bbox doğrula (küçük-kırpık yanlış-pozitifi +
