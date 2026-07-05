@@ -286,6 +286,38 @@ def translate_visual(visual_text: str) -> str:
     return " ".join(out) if out else visual_text
 
 
+def _token_en(tok: str) -> str | None:
+    """Tek folded token → İngilizce karşılığı (kök-prefix); yoksa None."""
+    return next((e for root, e in _TR_EN if tok.startswith(root)), None)
+
+
+def extract_vqa_targets(visual_text: str) -> tuple[str | None, str | None]:
+    """YES/NO VQA sözleşmesi için (nesne_en, renk_en) çıkar. Detay: ARCHITECTURE.md §8.
+
+    Küçük VLM çok-öznitelikli JSON'da rubber-stamp'liyor ama atomik yes/no'da kusursuz
+    ayırıyor (deney: experiments/2026-07-05_vlm_latency). O yüzden sorguyu asıl özneye +
+    renge indiririz; verifier iki ayrı yes/no sorar.
+
+    - renk: ilk renk kökü → EN.
+    - nesne: VLM'i TETİKLEYEN asıl özne — zor kavram (köpek/kedi/yağmur/kar/şemsiye) varsa
+      o (CLIP'in kaçırdığı tam odur); yoksa rengin nitelediği sınıf ismi; yoksa genel taşıt.
+    """
+    toks = [raw.strip(".,;:!?()[]\"'") for raw in _fold(visual_text).split()]
+    toks = [t for t in toks if t]
+
+    color_en = next((_token_en(t) for t in toks if t.startswith(_COLOR_ROOTS)), None)
+
+    # Zor kavram önce (VLM tetiğinin asıl sebebi); sonra sınıf ismi (sonuncu = head'e yakın)
+    obj_en = next((_token_en(t) for t in toks if t.startswith(_HARD_CONCEPT_ROOTS)), None)
+    if obj_en is None:
+        for t in toks:
+            if any(t.startswith(root) for root, _ in _CLASS_ROOTS) or t in _CLASS_EXACT:
+                obj_en = _token_en(t) or "object"
+    if obj_en is None and any(t.startswith(_GENERIC_VEHICLE_ROOTS) for t in toks):
+        obj_en = "vehicle"
+    return obj_en, color_en
+
+
 def scene_or_object_intent(visual_text: str) -> str:
     """Sorgu niyeti: 'scene' | 'object' | 'neutral'.
 

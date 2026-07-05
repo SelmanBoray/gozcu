@@ -182,32 +182,38 @@ Eval'in CLIP ile kapatılamayan açıkları: negasyon örtüşmesi (köpek/yağm
 çözemediği hava/öznitelik/tespit-dışı nesne) ve renk doğrulama (siyah SUV, mavi kamyonet).
 Çözüm: CLIP top-N adayı, küçük bir VLM ile TAM ÇÖZÜNÜRLÜKTE doğrulanır.
 
-- **Model: `qwen3-vl:2b`** (Ollama, 1.9GB Q4_K_M). 8GB kartta CLIP (~2GB) ile eşzamanlı
-  sığan tek sağlam seçenek (qwen2.5vl:3b Ollama'da CPU'ya düşüyor, 4b 6GB ister).
-  `keep_alive:30m` — swap thrash önle.
-- **VLM'in Türkçesine güvenilmez** → sorgunun görsel kelimeleri deterministik sözlükle
-  İngilizceye çevrilir (`query.translate_visual`; mavi→blue, köpek→dog). +0 VRAM, lokal.
+- **Model: `qwen2.5vl:3b`** (Ollama, 3.2GB Q4_K_M) — **non-thinking**. 8GB kartta CLIP
+  (~2GB) ile eşzamanlı GPU'ya sığar: `offloaded 37/37 layers to GPU` (ölçüldü, CPU offload
+  yok). `keep_alive:30m`. **Neden qwen3-vl:2b DEĞİL:** o bir thinking modeli — belirsiz
+  kırpıklarda sonsuz düşünme döngüsüne girip n_ctx'i doldurur, boş JSON döner (%33 hata,
+  deterministik); `think:false`/`/no_think`/`num_predict` cap hiçbiri bu Ollama build'inde
+  çözmedi. Teşhis: `experiments/2026-07-05_vlm_latency/`.
+- **Sözleşme: YES/NO VQA (JSON DEĞİL).** Küçük VLM'ler çok-öznitelikli reddetme-yanlı JSON
+  şemasında **rubber-stamp'liyor** — kırmızı arabaya "mavi araba? evet, conf 1.0" der (renk
+  sıfatını yok sayar). AMA aynı model düz yes/no'da rengi KUSURSUZ ayırır (kırmızı 9/9, mavi
+  0/9). Bu yüzden sorgu (nesne, renk) hedeflerine indirgenir (`query.extract_vqa_targets`)
+  ve verifier **iki ayrı atomik yes/no** sorar: "Is there a {obj}?" + "Is the {obj} {color}?".
+  `num_predict:4` kaçak üretimi yapısal olarak imkânsız kılar (thinking-loop panzehiri).
+- **VLM'in Türkçesine güvenilmez** → hedefler deterministik sözlükle İngilizceye çevrilir
+  (`extract_vqa_targets`; mavi→blue, köpek→dog). Zor kavram (köpek) sınıf isminden (insan)
+  öncelikli — CLIP'in kaçırdığı asıl özne odur. +0 VRAM, lokal.
 - **Tam çözünürlük:** kırpık thumb 36px olabiliyor (renk/detay yok) → orijinal videodan
-  bbox ile yeniden kırpılır (`recrop.py`). Renk/detay thumbnail'de kaybolur.
+  bbox ile yeniden kırpılır (`recrop.py`, 384px). Renk/detay thumbnail'de kaybolur.
 - **Koşullu tetik:** yalnız renk/zor-kavram sorgusu (`query.needs_vlm`) + Ollama ayakta.
   Nesne/sahne sorguları zaten yüksek recall → VLM vergisi ödenmez.
-- **Yapılandırılmış verdict** (yes-bias'a karşı): `{object_present, color_match, confidence}`,
-  reddetme-yanlı İngilizce prompt (`format:json`, temp 0).
-- **Füzyon (VLM CLIP'i ezmez, düzeltir):** yüksek-güvenli red (`object_present=false &
-  conf>τ`) → düşür; öznitelik → sınırlı rerank `z(cos) + β·conf·[match]`. VLM hatası →
-  dokunma (CLIP sıralaması korunur). Ayarlar: `vlm_top_n`, `vlm_confidence_tau`, `vlm_beta`.
-- **Renk'e körü körüne güvenme:** VLM'ler mavi/cyan'da zayıf (~%56 F1) → önce renk-precision
-  ölçülür; düşükse renk advisory-with-confidence kalır, hard-filtre edilmez.
-- **LLM sorgu-ayrıştırıcı (Qwen3-4B) ERTELENDİ:** kural-bazlı çalışıyor + 4B+2B+CLIP
+- **Verdict:** `{object_present, color_match, confidence}`; `confidence` = 1.0 (nesne var) /
+  0.0 (yok) — ayrım booleanlarda. VLM hatası → None (dokunma).
+- **Füzyon (VLM CLIP'i ezmez, düzeltir):** negasyon (renk yok) → `confidence<vlm_drop_below`
+  düşür (nesne yoksa 0.0→elenir); öznitelik (renk var) → sınırlı rerank `z(cos)+β·conf·[color
+  _match]`, düşürme yok. VLM hatası → dokunma. Ayarlar: `vlm_top_n`, `vlm_drop_below`, `vlm_beta`.
+- **LLM sorgu-ayrıştırıcı (Qwen3-4B) ERTELENDİ:** kural-bazlı çalışıyor + 4B+3B+CLIP
   aynı VRAM'e sığmaz.
-- **Ölçüldü (gözle doğrulandı):** negasyon güçlü — "köpek gezdiren adam"→BULUNAMADI,
-  yağmur 0/6 kabul (kapının çözemediğini VLM kapattı); renk — VLM CLIP'in hatalarını
-  düzeltiyor ("mavi kamyonet"te CLIP 4 aday, VLM 1 gerçek maviyi onayladı, 3 sahteyi
-  reddetti; siyah/beyaz/mavi 3 renk de gözle doğru). Pozitif kontrol otobüs 5/5, kamyon
-  4/4 (yanlış-reddetme yok). Dürüst sınır: kar 2/6 false-accept (açık zemin→"kar"),
-  küçük/bulanık insan over-reject (ama koşullu tetik bunları dışlıyor).
-- **Güvenilirlik:** CLIP+VLM 8GB'de eşzamanlı → çağrı spike'ları; `vlm_timeout_s=45` +
-  tek retry ile tek-sorgu (prod) 0/8 hata. Detay: `experiments/2026-07-04_faz2_vlm/`.
+- **Ölçüldü (5 Tmz, deterministik):** ayrım kusursuz — "red car" present+color 9/9, "blue
+  car" color 0/9 (renk ayrımı), "dog" present 0/9 (nesne ayrımı). Uçtan uca: "köpek gezdiren
+  insan"→hedef `dog`, CLIP'in 5 adayından **4 yanlış-pozitif elendi**, 1 köpekli kaldı.
+- **Güvenilirlik:** non-thinking + `num_predict:4` → **%100 geçerli** (thinking-loop yok).
+  Latency atomik yes/no ~2-5s; renk sorgusu kart başına 2 çağrı (~7s), top-8 ~50s (cold-load
+  dahil) → per-item streaming maskeler. `vlm_timeout_s=20`. Detay: `experiments/2026-07-05_vlm_latency/`.
 
 ### 8b. Async rafine — progressive render (viewer, 5 Temmuz 2026)
 
@@ -225,9 +231,10 @@ DEĞİL, **progressive render** (tek-kullanıcı demo için thread kırılganlı
 - **Cache:** `@st.cache_data` (CLIP) + **`session_state` (VLM sonucu, sorgu-anahtarlı)** —
   streaming canlı render gerektirdiği için VLM tarafı cache_data yerine session_state'te;
   Oynat tıklaması/rerun VLM'i yeniden koşmaz. `st.form` submit — keystroke başına arama yok.
-- **Güvenilirlik (streaming):** yavaş bir VLM çağrısı (spike) görünür ilerlemeyi kısa
-  süre durdurabilir; `vlm_timeout_s=30` bu takılmayı kısaltır (21s spike'lar absorbe,
-  hang'ler 30s'de kapanır → o kart rozetsiz, akış devam).
+- **Güvenilirlik (streaming):** yavaş bir VLM çağrısı görünür ilerlemeyi kısa süre
+  durdurabilir; `vlm_timeout_s=20` bu takılmayı kısaltır (yes/no ~2-5s; hang'ler 20s'de
+  kapanır → o kart "doğrulanamadı", akış devam). Not: model 5 Tmz qwen2.5vl:3b'ye geçti,
+  yes/no VQA sözleşmesi — §8. Streaming mimarisi aynen geçerli.
 - Prompt sıkılaştırıldı: "açıklamanın HER parçası görünmeli" → negasyon kısmi-eşleşme
   false-accept'i düzeldi (köpek/yağmur → BULUNAMADI, öznitelik bozulmadan).
 - Paralel VLM YOK (Ollama tek model, KV slot şişmesi → OOM riski). Sıralı + streaming.

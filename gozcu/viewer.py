@@ -34,9 +34,11 @@ def clip_search(query: str, top_k: int):
 
 # ── Rozet: VLM verdict'inden (streaming ⏳ / doğrulandı ✅ / elendi 🚫) ──
 def _verdict_badge(hit: dict) -> str:
-    v = hit.get("_vlm")
-    if not v:
-        return ""
+    if "_vlm" not in hit:
+        return ""                          # henüz doğrulanmadı (streaming ⏳ ayrı ele alınır)
+    v = hit["_vlm"]
+    if v is None:
+        return " · ⚠️ doğrulanamadı"       # VLM hata/timeout — kart asılı kalmasın
     if v.get("color_match") is True:
         return " · ✅ renk doğru"
     if v.get("object_present") and v["confidence"] >= settings.vlm_drop_below:

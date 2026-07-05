@@ -1,5 +1,26 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 5 Temmuz 2026 (akşam) — VLM güvenilirlik: thinking modeli atıldı, yes/no VQA'ya geçildi
+
+- **Sorun teşhis edildi (deterministik):** `qwen3-vl:2b` bir *thinking* modeli — belirsiz
+  kırpıklarda sonsuz düşünme döngüsüne girip n_ctx=4096'yı doldurur, boş `content` döner
+  (%33 hata). ~25s "timeout"lar aslında 2905-token kaçak *generation*. Her görüntü 2×→birebir
+  aynı. `think:false`/`/no_think`/`num_predict` cap hiçbiri bu Ollama build'inde çözmedi.
+- **AI Engineer kararı: B — non-thinking VLM'e geç.** Bir doğrulayıcının işi sınırsız akıl
+  yürütme değil, sınırlı-süreli deterministik sınıflandırma; thinking modeli yanlış araç.
+- **`qwen2.5vl:3b` (non-thinking)** — co-residency kapısı: 9/9 geçerli JSON, done hepsi
+  `stop`, **`offloaded 37/37 layers to GPU`** (CPU offload yok, CLIP ile sığdı).
+- **Ama JSON şeması RUBBER-STAMP'liyor:** kırmızı arabaya "mavi araba? evet, conf 1.0" der.
+  Düz yes/no'da ise rengi KUSURSUZ ayırır (kırmızı 9/9, mavi 0/9). Model kör değil — JSON
+  çerçevesi bozuyor. → **YES/NO VQA sözleşmesi**: sorgu (nesne, renk) hedeflerine indirgenir,
+  verifier iki atomik yes/no sorar; `num_predict:4` kaçağı yapısal imkânsız kılar.
+- **Sonuç her eksende kazanç:** reliability %100, ayrım kusursuz (red/blue, dog), latency
+  4.8s/2.3s (JSON'un 16.8s'inden 3.5× hızlı). Uçtan uca "köpek gezdiren insan"→hedef `dog`,
+  4 yanlış-pozitif elendi, 1 köpekli kaldı.
+- **Kod:** `query.extract_vqa_targets` (yeni), `verifier.py` yes/no'ya yeniden yazıldı,
+  `search.verify_top_n` yeni imza, `config` model+timeout(40→20). q8_0 env var registry'den
+  silindi. Detay: `experiments/2026-07-05_vlm_latency/deney_notu.md` · ARCHITECTURE.md §8
+
 ## 5 Temmuz 2026 (öğle) — Per-item streaming: VLM rozetleri canlı doluyor
 
 - `search.py` bölündü: `verify_top_n` (callback'li, her verdict'te `on_verdict(i,hit)`) +

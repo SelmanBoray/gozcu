@@ -11,11 +11,11 @@ from gozcu.query import (
     VEHICLE_CLASSES,
     ParsedQuery,
     extract_object_intent,
+    extract_vqa_targets,
     has_color,
     needs_vlm,
     parse_query,
     scene_or_object_intent,
-    translate_visual,
 )
 
 # ── Tembel tekiller ──
@@ -122,13 +122,15 @@ def _dedup_and_group(hits: list[dict], top_k: int) -> list[dict]:
 
 def verify_top_n(results: list[dict], visual_text: str, on_verdict=None) -> None:
     """Top-N adayı VLM ile doğrula, `h['_vlm']` doldur. Her verdict sonrası (streaming için)
-    `on_verdict(i, hit)` çağır. Füzyon YOK — yalnız verdict toplama."""
+    `on_verdict(i, hit)` çağır. Füzyon YOK — yalnız verdict toplama.
+
+    YES/NO VQA sözleşmesi: sorgu (nesne, renk) hedeflerine indirgenir; verifier atomik
+    sorar (rubber-stamp/thinking-loop panzehiri — ARCHITECTURE.md §8)."""
     from gozcu.verifier import verify_hit
 
-    en = translate_visual(visual_text)
-    ask_color = has_color(visual_text)
+    obj_en, color_en = extract_vqa_targets(visual_text)
     for i, h in enumerate(results[: settings.vlm_top_n]):
-        h["_vlm"] = verify_hit(h, en, ask_color)
+        h["_vlm"] = verify_hit(h, obj_en, color_en)
         if on_verdict is not None:
             on_verdict(i, h)
 

@@ -1,21 +1,28 @@
-"""Faz 2 — VLM doğrulayıcı (qwen3-vl:2b, Ollama). retrieve-then-verify.
+"""Faz 2 — VLM doğrulayıcı (qwen2.5vl:3b, Ollama). retrieve-then-verify, YES/NO VQA.
 
-CLIP top-N adayı, tam-çözünürlüklü görüntüyle (recrop) VLM'e sorulur. VLM yapılandırılmış
-JSON döner: {object_present, color_match, confidence}. Yes-bias'a karşı öznitelik-başına
-JSON + reddetme-yanlı prompt. Sorgu İngilizceye çevrilir (VLM'in Türkçesine güvenme).
+CLIP top-N adayı, tam-çözünürlüklü görüntüyle (recrop) VLM'e sorulur. Sözleşme:
+öznitelik-başına ATOMİK yes/no soru — nesne var mı? + (renk sorgusunda) rengi doğru mu?
 
-Kullanım: yalnız öznitelik/negasyon sorgularında (search tarafında koşullu tetiklenir).
+Neden yes/no, JSON değil: küçük VLM'ler çok-öznitelikli reddetme-yanlı JSON promptunda
+her şeyi onaylıyor (rubber-stamp — kırmızı arabaya "mavi araba? evet" diyor) ve önceki
+qwen3-vl:2b thinking-modu belirsiz kırpıklarda sonsuz düşünüp boş JSON dönüyordu. Aynı
+model atomik yes/no sorulunca rengi KUSURSUZ ayırıyor (kırmızı 9/9, mavi 0/9). Verify
+katmanının zaten yalnız boolean'a ihtiyacı var. Teşhis: experiments/2026-07-05_vlm_latency/
+
+Türkçe→İngilizce çeviri query.extract_vqa_targets'te (VLM'in Türkçesine güvenme).
 Detay: ARCHITECTURE.md §8
 """
 
 import base64
 import io
-import json
 
 import requests
 
 from gozcu.config import settings
 from gozcu.recrop import vlm_image_for_hit
+
+# ── Sayılamayan kavramlar: "a rain" değil "rain" (dilbilgisi VLM'i şaşırtmasın) ──
+_UNCOUNTABLE = {"rain", "snow", "traffic", "fog", "smoke"}
 
 
 def _encode(img) -> str:
@@ -24,63 +31,64 @@ def _encode(img) -> str:
     return base64.b64encode(buf.getvalue()).decode()
 
 
-def _prompt(english_desc: str, ask_color: bool) -> str:
-    """Reddetme-yanlı, öznitelik-başına JSON isteyen İngilizce doğrulama promptu."""
-    color_line = (
-        '"color_match": true only if the described color clearly matches the main object, '
-        if ask_color else '"color_match": null, '
-    )
-    return (
-        "You are verifying whether a security-camera image matches a search description.\n"
-        f'Search description: "{english_desc}".\n'
-        "Look carefully. Reply with ONLY a JSON object:\n"
-        '{"object_present": true only if the described main subject is clearly visible, '
-        f"{color_line}"
-        '"confidence": your certainty from 0.0 to 1.0 that the FULL description matches '
-        "this image (1.0 = clearly matches, 0.0 = clearly does NOT match)}\n"
-        "Be strict: EVERY element of the description must be clearly visible. If ANY part "
-        "is missing (e.g. a dog is described but no dog is visible, even if a person is), "
-        "set object_present false AND confidence near 0. When unsure, answer false."
-    )
+def _presence_q(obj_en: str) -> str:
+    """'Is there a car in this image?' — sayılamayanlarda artikel düşürülür."""
+    if obj_en in _UNCOUNTABLE:
+        return f"Is there {obj_en} visible in this image?"
+    article = "an" if obj_en[:1].lower() in "aeiou" else "a"
+    return f"Is there {article} {obj_en} in this image?"
 
 
-def verify_hit(hit: dict, english_desc: str, ask_color: bool) -> dict | None:
-    """Bir adayı VLM ile doğrula. Döndürür: {object_present, color_match, confidence}.
+def _yesno(img_b64: str, question: str) -> bool | None:
+    """Tek atomik yes/no VLM sorusu → True/False, hata/timeout → None.
 
-    Ollama erişilemez/hata → None (çağıran VLM'i atlar, CLIP sıralaması korunur).
+    num_predict:4 — tek kelime yeter, kaçak üretimi imkânsız kılar (thinking modelinin
+    sonsuz-düşünme çöküşünün yapısal panzehiri).
     """
-    try:
-        img = vlm_image_for_hit(hit, out_size=384)
-    except Exception:
-        return None
     payload = {
         "model": settings.vlm_model,
-        "messages": [{"role": "user", "content": _prompt(english_desc, ask_color),
-                      "images": [_encode(img)]}],
-        "format": "json",
+        "messages": [{"role": "user",
+                      "content": question + " Answer only 'yes' or 'no'.",
+                      "images": [img_b64]}],
         "stream": False,
         "keep_alive": settings.vlm_keep_alive,
-        # Latency bottleneck token üretimi DEĞİL görüntü prefill'i (vision encoding) —
-        # num_predict cap latency'yi düşürmedi + JSON'u kesti. num_predict yok.
-        "options": {"temperature": 0},
+        "options": {"temperature": 0, "num_predict": 4},
     }
     # ── Tek retry: CLIP+VLM eşzamanlı GPU baskısında ara sıra timeout/500 olur ──
-    verdict = None
     for _attempt in range(2):
         try:
             resp = requests.post(settings.vlm_url, json=payload, timeout=settings.vlm_timeout_s)
             resp.raise_for_status()
-            verdict = json.loads(resp.json()["message"]["content"])
-            break
+            ans = resp.json()["message"]["content"].strip().lower()
+            return ans.startswith("y")
         except Exception:
             continue
-    if verdict is None:
+    return None
+
+
+def verify_hit(hit: dict, obj_en: str | None, color_en: str | None) -> dict | None:
+    """Bir adayı yes/no VQA ile doğrula. Döndürür: {object_present, color_match, confidence}.
+
+    object_present: nesne görünür mü. color_match: rengi doğru mu (renk yoksa None).
+    confidence: 1.0 (nesne var) / 0.0 (yok) — ayrım booleanlarda, füzyon bunu kullanır.
+    Recrop/Ollama hatası → None (çağıran VLM'i atlar, CLIP sıralaması korunur).
+    """
+    try:
+        img_b64 = _encode(vlm_image_for_hit(hit, out_size=384))
+    except Exception:
         return None
-    # ── Normalleştir ──
+    obj = obj_en or "object"
+    present = _yesno(img_b64, _presence_q(obj))
+    if present is None:
+        return None  # VLM erişilemedi → dokunma
+    # ── Renk yalnız nesne varsa ve renk sorulmuşsa; nesne yoksa renk anlamsız ──
+    color_match = None
+    if color_en and present:
+        color_match = _yesno(img_b64, f"Is the {obj} {color_en} in color?")
     return {
-        "object_present": bool(verdict.get("object_present")),
-        "color_match": verdict.get("color_match"),  # true/false/None
-        "confidence": float(verdict.get("confidence") or 0.0),
+        "object_present": present,
+        "color_match": color_match,
+        "confidence": 1.0 if present else 0.0,
     }
 
 

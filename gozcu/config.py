@@ -63,14 +63,17 @@ class Settings(BaseSettings):
     # Yalnız intent=="scene"; nesne-niyeti nötr. z-skoru: skor-boşluğundan kalibre edildi.
     scene_boost_lambda: float = 1.0
 
-    # ── Faz 2: VLM doğrulayıcı (retrieve-then-verify, ARCHITECTURE.md §8) ──
-    vlm_model: str = "qwen3-vl:2b"        # 1.9GB — CLIP ile eşzamanlı sığar (8GB kart)
+    # ── Faz 2: VLM doğrulayıcı (retrieve-then-verify, YES/NO VQA — ARCHITECTURE.md §8) ──
+    # qwen2.5vl:3b: non-thinking (qwen3-vl'in sonsuz-düşünme çöküşü yok), 37/37 layer GPU'da
+    # CLIP ile sığar (ölçüldü), atomik yes/no'da rengi kusursuz ayırır. Teşhis:
+    # experiments/2026-07-05_vlm_latency/
+    vlm_model: str = "qwen2.5vl:3b"       # 3.2GB — CLIP ile eşzamanlı GPU'ya sığar (8GB kart)
     vlm_url: str = "http://localhost:11434/api/chat"
     vlm_keep_alive: str = "30m"           # her sorgu arası model boşaltma (swap thrash) önle
     vlm_top_n: int = 8                    # yalnız top-N aday doğrulanır (latency)
     vlm_drop_below: float = 0.3           # negasyon: eşleşme-güveni bu altındaysa düşür (absent)
     vlm_beta: float = 0.5                 # öznitelik rerank ağırlığı (skor-boşluğundan kalibre)
-    vlm_timeout_s: float = 30.0           # 21s spike'ları absorbe eder; streaming'de takılmayı kısaltır
+    vlm_timeout_s: float = 20.0           # atomik yes/no ~2-5s; 20s cold-load + baskı payı
 
 
 settings = Settings()
