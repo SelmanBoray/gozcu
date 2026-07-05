@@ -11,7 +11,7 @@ Kaynak videolar mevcut (tüm korpus için doğrulandı). ffmpeg ile hızlı seek
 import io
 import subprocess
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from gozcu.config import settings
 
@@ -61,15 +61,45 @@ def crop_bbox(
 
 
 def vlm_image_for_hit(hit: dict, out_size: int = 384) -> Image.Image:
-    """Bir arama sonucu için VLM'e verilecek görüntü.
-
-    Kırpık ise: orijinalden yüksek-res yeniden-kırp (bbox payload'da).
-    Kare ise: orijinal kareyi 480px'e ölçekle (zaten sahne — bbox yok).
-    """
+    """(Eski) tight-kırpık — geriye dönük uyum. Yeni doğrulama: vlm_frame_for_hit."""
     frame = frame_at(hit["video_path"], hit["offset_s"])
     if hit.get("source") == "crop" and hit.get("bbox"):
         return crop_bbox(frame, hit["bbox"], out_size=out_size)
-    # ── kare: tüm sahne, kısa kenar 480 ──
     w, h = frame.size
     scale = settings.thumb_width / max(w, h)
     return frame.resize((max(1, int(w * scale)), max(1, int(h * scale))), Image.LANCZOS)
+
+
+def _cap_side(frame: Image.Image, max_side: int) -> Image.Image:
+    """Uzun kenarı max_side'a indir (küçükse dokunma) — token/latency'yi tutar."""
+    w, h = frame.size
+    if max(w, h) <= max_side:
+        return frame
+    s = max_side / max(w, h)
+    return frame.resize((max(1, int(w * s)), max(1, int(h * s))), Image.LANCZOS)
+
+
+def draw_bbox(frame: Image.Image, bbox_norm: list[float]) -> Image.Image:
+    """Normalize bbox'ı parlak dikdörtgenle çiz (referring-style — VLM'e 'hangi özne' der)."""
+    frame = frame.copy()
+    w, h = frame.size
+    x1, y1, x2, y2 = bbox_norm
+    lw = max(3, int(max(w, h) * 0.006))
+    ImageDraw.Draw(frame).rectangle(
+        [int(x1 * w), int(y1 * h), int(x2 * w), int(y2 * h)],
+        outline=(255, 40, 40), width=lw)
+    return frame
+
+
+def vlm_frame_for_hit(hit: dict, draw_box: bool = True, max_side: int | None = None) -> Image.Image:
+    """Doğrulama görüntüsü: sınırlandırılmış TAM-KARE (küçük kırpık yerine tam bağlam).
+
+    draw_box: kırpık aday ise bbox'ı çiz (renk/öznitelik → 'kutudaki nesne'). Zor-kavram
+    (köpek insan-bbox dışında olabilir) sorgusunda draw_box=False → kutusuz tüm sahne.
+    Detay: ARCHITECTURE.md §8 (AI Engineer b-kararı).
+    """
+    max_side = max_side or settings.vlm_frame_max_side
+    frame = _cap_side(frame_at(hit["video_path"], hit["offset_s"]), max_side)
+    if draw_box and hit.get("source") == "crop" and hit.get("bbox"):
+        return draw_bbox(frame, hit["bbox"])
+    return frame

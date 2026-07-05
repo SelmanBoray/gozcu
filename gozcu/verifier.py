@@ -19,7 +19,7 @@ import io
 import requests
 
 from gozcu.config import settings
-from gozcu.recrop import vlm_image_for_hit
+from gozcu.recrop import vlm_frame_for_hit, vlm_image_for_hit
 
 # ── Sayılamayan kavramlar: "a rain" değil "rain" (dilbilgisi VLM'i şaşırtmasın) ──
 _UNCOUNTABLE = {"rain", "snow", "traffic", "fog", "smoke"}
@@ -36,12 +36,30 @@ def _encode(img) -> str:
     return base64.b64encode(buf.getvalue()).decode()
 
 
-def _presence_q(obj_en: str) -> str:
-    """'Is there a car in this image?' — sayılamayanlarda artikel düşürülür."""
+def _article(obj_en: str) -> str:
+    return "an" if obj_en[:1].lower() in "aeiou" else "a"
+
+
+def _crop_presence_q(obj_en: str) -> str:
+    """Renk yolu (tight-kırpık, özne kadrajı doldurur): aday bu kırpıkta aranan nesne mi."""
     if obj_en in _UNCOUNTABLE:
         return f"Is there {obj_en} visible in this image?"
-    article = "an" if obj_en[:1].lower() in "aeiou" else "a"
-    return f"Is there {article} {obj_en} in this image?"
+    return f"Is there {_article(obj_en)} {obj_en} in this image?"
+
+
+def _scene_presence_q(obj_en: str) -> str:
+    """Zor-kavram yolu (kutusuz TAM-KARE): nesne sahnenin HERHANGİ yerinde mi (köpek
+    insan-bbox dışında olabilir → tight-kırpık göremez). Sayılamayanlarda artikel düşer."""
+    if obj_en in _UNCOUNTABLE:
+        return f"Is there {obj_en} visible anywhere in this image?"
+    return f"Is there {_article(obj_en)} {obj_en} visible anywhere in this image?"
+
+
+def _color_q(obj_en: str, color_en: str, is_person: bool) -> str:
+    """Kırpıktaki öznenin rengi. İnsanda renk giysiye işaret eder (gövde değil)."""
+    if is_person:
+        return f"Is this {obj_en} wearing {color_en} clothing?"
+    return f"Is the {obj_en} {color_en} in color?"
 
 
 def _yesno(img_b64: str, question: str) -> bool | None:
@@ -74,27 +92,35 @@ def _yesno(img_b64: str, question: str) -> bool | None:
 def verify_hit(hit: dict, obj_en: str | None, color_en: str | None) -> dict | None:
     """Bir adayı yes/no VQA ile doğrula. Döndürür: {object_present, color_match, confidence}.
 
-    object_present: nesne görünür mü. color_match: rengi doğru mu (renk yoksa None).
-    confidence: 1.0 (nesne var) / 0.0 (yok) — ayrım booleanlarda, füzyon bunu kullanır.
-    Recrop/Ollama hatası → None (çağıran VLM'i atlar, CLIP sıralaması korunur).
+    HİBRİT görüntü (ölçümle en iyi — experiments/2026-07-05_vlm_latency):
+    - **Renk/öznitelik → tight-kırpık** (özne kadrajı doldurur, renk net, hızlı; tam-kare
+      küçültmesi uzak aracı görünmez kılıp gerçek eşleşmeyi eliyordu).
+    - **Zor-kavram (köpek/yağmur) → kutusuz TAM-KARE** (nesne kırpık dışında olabilir; tam
+      sahne yanlış-pozitifi çözer: "köpek gezdiren adam"→bulunamadı, önceki 1 yanlış-pozitif gitti).
+
+    confidence: 1.0 (nesne var) / 0.0 (yok). Recrop/Ollama hatası → None (çağıran atlar).
     """
+    obj = obj_en or "object"
     try:
-        img_b64 = _encode(vlm_image_for_hit(hit, out_size=384))
+        if color_en:
+            img_b64 = _encode(vlm_image_for_hit(hit, out_size=384))       # tight-kırpık
+        else:
+            img_b64 = _encode(vlm_frame_for_hit(hit, draw_box=False))     # kutusuz tam-kare
     except Exception:
         return None
-    obj = obj_en or "object"
-    present = _yesno(img_b64, _presence_q(obj))
-    if present is None:
-        return None  # VLM erişilemedi → dokunma
-    # ── Renk yalnız nesne varsa ve renk sorulmuşsa; nesne yoksa renk anlamsız ──
-    # İnsanlarda renk giysiye işaret eder (kırmızı kıyafetli adam ≠ kırmızı adam).
-    color_match = None
-    if color_en and present:
-        if obj in _PERSON_OBJECTS:
-            q = f"Is this {obj} wearing {color_en} clothing?"
-        else:
-            q = f"Is the {obj} {color_en} in color?"
-        color_match = _yesno(img_b64, q)
+
+    if color_en:
+        present = _yesno(img_b64, _crop_presence_q(obj))
+        if present is None:
+            return None
+        color_match = _yesno(img_b64, _color_q(obj, color_en, obj in _PERSON_OBJECTS)) \
+            if present else None
+    else:
+        present = _yesno(img_b64, _scene_presence_q(obj))  # zor-kavram: tüm sahne
+        if present is None:
+            return None
+        color_match = None
+
     return {
         "object_present": present,
         "color_match": color_match,

@@ -1,5 +1,19 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 5 Temmuz 2026 (gece-4) — VLM doğruluğu: hibrit doğrulama görüntüsü (2/4)
+
+- AI Engineer (b): kırpık yerine tam-kare+bbox doğrula (küçük-kırpık yanlış-pozitifi +
+  çok-nesne kapsamı). Uyguladım AMA ölçüm bir uyarı gösterdi: tam-kare renk sorgularını
+  FAZLA ELİYOR (siyah SUV 7→2, gözle doğrulandı — kutulu araç açıkça siyah SUV ama VLM
+  768px'e küçültülmüş meşgul sahnede "kutuda araba yok" dedi). Latency da 46s'e çıktı.
+- **Karar: HİBRİT (ölçümle en iyi):**
+  - **Renk/öznitelik → tight-kırpık** (özne kadrajı doldurur, renk net, hızlı — kanıtlı iyi).
+  - **Zor-kavram (köpek/yağmur) → kutusuz tam-kare** (nesne kırpık dışında olabilir).
+- **Sonuç:** "köpek gezdiren adam" → **BULUNAMADI** (önceki 1 yanlış-pozitif GİTTİ, tam-kare
+  sayesinde). "kırmızı araba" 7/7, "siyah SUV" 7 (fazla-eleme yok). "kırmızı kıyafetli adam"
+  bulunamadı. `recrop.vlm_frame_for_hit`/`draw_bbox` eklendi (bbox kart görselinde de kullanılacak).
+  Detay: ARCHITECTURE.md §8, `experiments/2026-07-05_vlm_latency/tam_kare_gorsel.py`.
+
 ## 5 Temmuz 2026 (gece-3) — "Mükemmelleştirme" turu: Kararlılık (AI Engineer planı, 1/4)
 
 - Selman "mükemmel hale getirelim" dedi, 4 alan seçildi (UX/kararlılık/VLM doğruluğu/korpus).

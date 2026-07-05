@@ -79,6 +79,10 @@ class Settings(BaseSettings):
     vlm_drop_below: float = 0.3           # negasyon: eşleşme-güveni bu altındaysa düşür (absent)
     vlm_beta: float = 0.5                 # öznitelik rerank ağırlığı (skor-boşluğundan kalibre)
     vlm_timeout_s: float = 30.0           # atomik yes/no ~0.3-2s (warm); 30s yalnız emniyet (cold/hang)
+    # Doğrulama görüntüsü HİBRİT (ölçümle): renk/öznitelik → tight-kırpık (özne kadrajı
+    # doldurur); ZOR-KAVRAM (köpek/yağmur) → kutusuz sınırlandırılmış tam-kare (nesne kırpık
+    # dışında olabilir). Tam-kare uzun-kenar sınırı token/latency'yi tutar. ARCHITECTURE §8.
+    vlm_frame_max_side: int = 768         # zor-kavram doğrulama tam-karesi uzun kenar sınırı (px)
 
 
 settings = Settings()

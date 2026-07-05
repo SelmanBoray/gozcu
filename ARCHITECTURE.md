@@ -217,10 +217,15 @@ Eval'in CLIP ile kapatılamayan açıkları: negasyon örtüşmesi (köpek/yağm
   (kuyruk sızıntısı yok). VLM hatası (None) → dokunma. Ayarlar: `vlm_top_n`, `vlm_drop_below`,
   `vlm_beta`. NOT: eski "renk güvenilmez→rerank-only, düşürme yok" tasarımı qwen3-vl JSON
   rubber-stamp içindi; model+sözleşme değişince renk hard-filtreye terfi etti.
-- **Model tavanı (kabul):** küçük/bulanık kırpıkta varlık yes-bias'ı (insanda "köpek",
-  arabada "adam" yanlış-pozitif). Sıkı prompt uzak-insanı da reddediyor → temiz çözüm yok,
-  tavan kabul. Çok-nesneli sorgu (köpek gezdiren) kırpık kapsamıyla da sınırlı (köpek
-  insan-bbox'ı dışında kalabilir).
+- **Doğrulama görüntüsü HİBRİT (ölçümle kalibre, 5 Tmz):** küçük/bulanık kırpıkta varlık
+  yes-bias'ı (insanda "köpek", arabada "adam" yanlış-pozitif) + çok-nesne kapsamı (köpek
+  insan-bbox'ı dışında) tight-kırpıkta çözülemiyordu. Çözüm cinse göre görüntü seç:
+  - **Renk/öznitelik → tight-kırpık** (özne kadrajı doldurur, renk net, hızlı). Tam-kare
+    denendi ama 768px'e küçültülünce uzak araç görünmez olup gerçek eşleşmeyi eledi
+    (siyah SUV 7→2 fazla-eleme, gözle doğrulandı) → tight-kırpık korundu.
+  - **Zor-kavram (köpek/yağmur) → kutusuz TAM-KARE** (`recrop.vlm_frame_for_hit`, uzun kenar
+    `vlm_frame_max_side=768`): VLM tüm sahneyi görür → "bu görüntüde köpek yok" diyebilir.
+    Ölçüldü: "köpek gezdiren adam" tight-kırpıkta 1 yanlış-pozitif → tam-karede **bulunamadı** (0).
 - **LLM sorgu-ayrıştırıcı (Qwen3-4B) ERTELENDİ:** kural-bazlı çalışıyor + 4B+3B+CLIP
   aynı VRAM'e sığmaz.
 - **Ölçüldü (5 Tmz, deterministik):** ayrım kusursuz — "red car" present+color 9/9, "blue
