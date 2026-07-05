@@ -1,0 +1,95 @@
+{
+  "score": "9/10",
+  "records": [
+    {
+      "id": "f2_neg_kopek",
+      "bucket": "negation",
+      "query": "köpek gezdiren adam",
+      "expect": "not_found",
+      "got": "not_found",
+      "pass": true,
+      "n_results": 0
+    },
+    {
+      "id": "f2_neg_yagmur",
+      "bucket": "negation",
+      "query": "yağmurda şemsiyeli insanlar",
+      "expect": "not_found",
+      "got": "not_found",
+      "pass": true,
+      "n_results": 0
+    },
+    {
+      "id": "f2_neg_kar",
+      "bucket": "negation",
+      "query": "karla kaplı sokak",
+      "expect": "not_found",
+      "got": "not_found",
+      "pass": true,
+      "n_results": 0
+    },
+    {
+      "id": "f2_attr_siyah_suv",
+      "bucket": "attribute",
+      "query": "siyah SUV araç",
+      "expect": "has_results",
+      "got": "has_results",
+      "pass": true,
+      "n_results": 12
+    },
+    {
+      "id": "f2_attr_mavi_kamyonet",
+      "bucket": "attribute",
+      "query": "mavi kamyonet",
+      "expect": "not_found",
+      "got": "has_results",
+      "pass": false,
+      "n_results": 5
+    },
+    {
+      "id": "f2_attr_beyaz_arac",
+      "bucket": "attribute",
+      "query": "beyaz renkli araba",
+      "expect": "has_results",
+      "got": "has_results",
+      "pass": true,
+      "n_results": 12
+    },
+    {
+      "id": "f2_attr_kirmizi_arac",
+      "bucket": "attribute",
+      "query": "kırmızı araba",
+      "expect": "has_results",
+      "got": "has_results",
+      "pass": true,
+      "n_results": 9
+    },
+    {
+      "id": "f2_ctrl_otobus",
+      "bucket": "positive_ctrl",
+      "query": "otobüs",
+      "expect": "has_results",
+      "got": "has_results",
+      "pass": true,
+      "n_results": 5
+    },
+    {
+      "id": "f2_ctrl_yuruyen_insan",
+      "bucket": "positive_ctrl",
+      "query": "yürüyen insan",
+      "expect": "has_results",
+      "got": "has_results",
+      "pass": true,
+      "n_results": 4
+    },
+    {
+      "id": "f2_ctrl_kamyon",
+      "bucket": "positive_ctrl",
+      "query": "kamyon",
+      "expect": "has_results",
+      "got": "has_results",
+      "pass": true,
+      "n_results": 9
+    }
+  ]
+}

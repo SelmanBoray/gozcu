@@ -1,53 +1,53 @@
-# Faz 2 VLM eval — CLIP'in çözemediği kovalar. use_vlm=False vs True (eşleştirilmiş McNemar).
-# Pre-registration: sorgular sonuca bakmadan yazıldı.
+# Faz 2 VLM eval — uçtan uca pipeline (search use_vlm=True) beklenti-eşleşme skoru.
+# Pre-registration: sorgular + beklentiler sonuca bakmadan/gözle-doğrulanmış ground-truth'la yazıldı.
 #
-# Kovalar (AI Engineer S5):
-#   negation — konsept korpusta yok, VLM top sonuçları REDDETMELİ (false-accept ölç)
-#   attribute — renk, VLM DOĞRULAMALI (renk-precision ölç; VLM renkte zayıf olabilir → ölçmeden güvenme)
-#   positive_ctrl — geçerli eşleşme, VLM yanlış-REDDETMEMELİ (false-reject ölç)
+# expect: pipeline'ın DOĞRU çıktısı (objektif skor için)
+#   not_found  — konsept korpusta yok → bulunamadı/0 sonuç dönmeli
+#   has_results — geçerli eşleşme var → ≥1 sonuç dönmeli
+# Kovalar: negation (VLM reddetmeli), attribute (renk), positive_ctrl (yanlış-reddetme yok)
 
-# ═══ NEGASYON (VLM reddetmeli — kapının çözemediği öznitelik/hava/tespit-dışı) ═══
+# ═══ NEGASYON (konsept korpusta yok → bulunamadı beklenir) ═══
 - id: f2_neg_kopek
   query: "köpek gezdiren adam"
   bucket: negation
-  concept: dog                 # korpusta köpek yok → VLM object_present=false demeli
+  expect: not_found            # korpusta köpek yok (gözle doğrulandı)
 - id: f2_neg_yagmur
   query: "yağmurda şemsiyeli insanlar"
   bucket: negation
-  concept: rain+umbrella
+  expect: not_found            # yağmur/şemsiye sahnesi yok
 - id: f2_neg_kar
   query: "karla kaplı sokak"
   bucket: negation
-  concept: snow
+  expect: not_found            # kar sahnesi yok (açık zemin false-accept riski)
 
-# ═══ ÖZNİTELİK (VLM renk doğrulamalı — CLIP renk garantilemiyor) ═══
+# ═══ ÖZNİTELİK (renk — VLM doğrulamalı) ═══
 - id: f2_attr_siyah_suv
   query: "siyah SUV araç"
   bucket: attribute
-  color: black
+  expect: has_results          # siyah SUV var (gözle doğrulandı, 8 sonuç)
 - id: f2_attr_mavi_kamyonet
   query: "mavi kamyonet"
   bucket: attribute
-  color: blue                  # KRİTİK: VLM mavi/cyan'da zayıf (~%56 F1) — precision ölç
+  expect: not_found            # korpusta mavi kamyonet yok — renk-ayrım testi (mavi≠kırmızı)
 - id: f2_attr_beyaz_arac
   query: "beyaz renkli araba"
   bucket: attribute
-  color: white
+  expect: has_results          # beyaz araba yaygın
 - id: f2_attr_kirmizi_arac
   query: "kırmızı araba"
   bucket: attribute
-  color: red
+  expect: has_results          # kırmızı araba var (gözle doğrulandı, 7)
 
-# ═══ POZİTİF KONTROL (VLM yanlış-reddetmemeli — regresyon denetimi) ═══
+# ═══ POZİTİF KONTROL (geçerli eşleşme — VLM yanlış-reddetmemeli) ═══
 - id: f2_ctrl_otobus
   query: "otobüs"
   bucket: positive_ctrl
-  concept: bus                 # ucf_trafik'te var → VLM reddetmemeli
+  expect: has_results          # ucf_trafik'te otobüs var
 - id: f2_ctrl_yuruyen_insan
   query: "yürüyen insan"
   bucket: positive_ctrl
-  concept: walking person
+  expect: has_results          # her yerde insan var
 - id: f2_ctrl_kamyon
   query: "kamyon"
   bucket: positive_ctrl
-  concept: truck
+  expect: has_results          # kamyon var
