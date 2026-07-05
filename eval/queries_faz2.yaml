@@ -28,7 +28,11 @@
 - id: f2_attr_mavi_kamyonet
   query: "mavi kamyonet"
   bucket: attribute
-  expect: not_found            # korpusta mavi kamyonet yok — renk-ayrım testi (mavi≠kırmızı)
+  expect: not_found            # korpusta mavi kamyonet yok — ama BİLİNEN MODEL TAVANI:
+  # qwen2.5vl mavi/teal'i karıştırıyor (teal otobüs→"mavi") + bulanık kırpıkta kamyonet/otobüs
+  # ayrımı zayıf → yanlış-kabul. Sıkı renk promptu denendi: mavi'yi kesti AMA kırmızı/siyah'ı da
+  # öldürdü (6/6→2/6, aşırı-muhafazakâr) → temiz fix yok. Dürüst FAIL olarak tutuluyor (skoru
+  # şişirme); daha iyi VLM/korpus gelince yükselir. Detay: renk_prompt_ab.py
 - id: f2_attr_beyaz_arac
   query: "beyaz renkli araba"
   bucket: attribute

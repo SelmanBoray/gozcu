@@ -1,5 +1,18 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 6 Temmuz 2026 — Loop iterasyonu: eval flag'i araştırıldı (mavi/teal model tavanı)
+
+- Loop çalışıyor: eval "mavi kamyonet"i flag'ledi (5 sonuç, beklenen bulunamadı) → araştırıldı.
+- **Teşhis (gözle):** korpusta mavi kamyonet yok (ground-truth doğru). Yanlış-kabul sebebi
+  gerçek model tavanı: qwen2.5vl mavi/teal'i karıştırıyor (teal otobüs→"mavi") + bulanık uzak
+  kırpıkta kamyonet/otobüs/araba ayrımı zayıf.
+- **Lever denendi + ELENDİ:** sıkı renk promptu ("predominantly blue, teal/yeşil değil") A/B:
+  mavi True 3/4→**0/4** (düzeltti) AMA kırmızı/siyah True **6/6→2/6** (gerçek eşleşmeleri de
+  öldürdü, aşırı-muhafazakâr — sıkı-presence prompt'uyla aynı desen). Temiz fix yok.
+- **Karar: tavan kabul + dürüst FAIL olarak tut** (skoru şişirme). Eval %90'da kalıyor; daha
+  iyi VLM/korpus gelince yükselir. Loop'un dürüst sonucu: her flag kod-fix almaz, bazıları
+  araştırılıp belgelenen tavandır. Detay: `experiments/2026-07-05_vlm_latency/renk_prompt_ab.py`.
+
 ## 5 Temmuz 2026 (gece-6) — Otonom loop: streaming decouple (freeze çözüldü) + YOLO-skip latency
 
 - Selman "tüm önerileri uygula → düşün → devam et, loop'ta çalış" dedi. AI Engineer'a
