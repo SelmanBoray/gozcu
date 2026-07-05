@@ -1,5 +1,23 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 5 Temmuz 2026 (gece-2) — "kırmızı kıyafetli adam" hâlâ araba gösteriyordu: 3 UI/füzyon düzeltmesi
+
+- Selman bir önceki turdan sonra hâlâ kırmızı araba görüyordu. **Tarayıcıyla bizzat
+  reprodüksiyon** (Chrome) kök nedeni gösterdi: sorun 3 katmanlı, hepsi düzeltildi + görsel doğrulandı.
+- **Kuyruk sızıntısı:** `default_top_k=12` ama `vlm_top_n=8` → rank 9-12 DOĞRULANMADAN
+  ekleniyordu (kırmızı arabalar). `vlm_top_n=12` (=default) + `_fuse_verdicts` doğrulanmamış
+  kuyruğu döndürmez.
+- **Renk-uymayan ana ızgarada kalıyordu:** füzyon `present=False`'u eliyordu ama `color_match
+  is False`'u tutuyordu → renk uymayan kartlar "🚫 renk uymadı" rozetiyle görünmeye devam
+  ediyordu. Renk artık ölçülmüş güvenilir (qwen2.5vl red/blue 9/9↔0/9) → renk sorgusunda
+  `color_match is False` de elenir. Böylece hiç gerçek eşleşme yoksa → **bulunamadı** (eski
+  "renk güvenilmez→rerank-only" tasarımı qwen3-vl JSON rubber-stamp içindi, artık geçersiz).
+- **Bulunamadı mesajı renk-farkında:** "aranan renk/nesne bileşimi doğrulanamadı."
+- **TARAYICIYLA DOĞRULANDI:** "kırmızı kıyafetli adam" → ana görünüm "🔍 Bulunamadı",
+  7 kırmızı araba "VLM elenenler (7)" expander'ında. Regresyon yok: kırmızı araba 7/7,
+  siyah SUV 1 eledi. Kalan UX notu: streaming ~30s CLIP adaylarını ⏳ ile gösterir (final
+  reflow doğru) — kabul edilebilir. Detay: ARCHITECTURE.md §8.
+
 ## 5 Temmuz 2026 (gece) — Selman'ın 2 sorgusu: renk-giysi + füzyon düzeltmeleri
 
 - Selman "köpek gezdiren adam" ve "kırmızı kıyafetli adam" aradı, ikisi de yanlış gösterdi.

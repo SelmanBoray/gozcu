@@ -136,29 +136,39 @@ def verify_top_n(results: list[dict], visual_text: str, on_verdict=None) -> None
 
 
 def _fuse_verdicts(results: list[dict], visual_text: str) -> tuple[list[dict], list[dict], str | None]:
-    """Toplanmış `h['_vlm']` verdict'lerinden füzyon.
+    """Toplanmış `h['_vlm']` verdict'lerinden füzyon. Eşleşmeyen aday ANA IZGARADAN çıkar
+    (elenenler expander'ında görünür); hiç gerçek eşleşme yoksa → bulunamadı.
 
-    - **Nesne yokluğu → DÜŞÜR (her iki modda):** yes/no VQA ile nesne-varlığı artık
-      GÜVENİLİR. `confidence < vlm_drop_below` (nesne yok) → düşür. Eski "renk modunda
-      düşürme" tasarımı, JSON rubber-stamp'i güvenilmezken doğruydu; artık geçersiz
-      (ör. "kırmızı kıyafetli adam" → kırmızı arabalar `present=False` → düşer, adam kalır).
-    - **Renk → yalnız rerank** (düşürmez, drop değil sıralama sinyali): `z(cos)+β·conf·[color]`.
-    - VLM hatası (None): dokunma (CLIP sıralaması korunur). Hepsi düşerse → bulunamadı.
+    - **Nesne yokluğu → DÜŞÜR (her iki modda):** yes/no VQA ile nesne-varlığı GÜVENİLİR.
+      `confidence < vlm_drop_below` (nesne yok) → düşür.
+    - **Renk uymadı → DÜŞÜR (renk sorgusunda):** qwen2.5vl renk ayrımı ölçülmüş güvenilir
+      (red/blue 9/9↔0/9) → `color_match is False` de eleme. Böylece "kırmızı kıyafetli
+      adam" korpusta kırmızı giyen yoksa kırmızı ARABA göstermez, bulunamadı der. (Eski
+      "renk güvenilmez → rerank-only" tasarımı qwen3-vl JSON rubber-stamp içindi, artık geçersiz.)
+    - VLM hatası (None): dokunma (CLIP sıralaması korunur).
     """
     ask_color = has_color(visual_text)
-    head, tail = results[: settings.vlm_top_n], results[settings.vlm_top_n:]
+    # Kuyruk (vlm_top_n dışı) DOĞRULANMAZ → VLM modunda gösterilmez (sızıntı önle):
+    # "kırmızı kıyafetli adam"da rank 9-12 kırmızı arabalar doğrulanmadan sızıyordu.
+    # vlm_top_n=default_top_k olduğundan varsayılan sorguda kuyruk zaten boş.
+    head = results[: settings.vlm_top_n]
 
     survivors: list[dict] = []
     filtered: list[dict] = []
     for h in head:
         v = h.get("_vlm")
-        if v and v["confidence"] < settings.vlm_drop_below:  # nesne yok → her iki modda düşür
-            filtered.append(h)
-            continue
+        if v:
+            absent = v["confidence"] < settings.vlm_drop_below       # nesne yok
+            wrong_color = ask_color and v.get("color_match") is False  # renk uymadı
+            if absent or wrong_color:
+                filtered.append(h)
+                continue
         survivors.append(h)
 
     if head and not survivors:
-        return [], filtered, "VLM: tanımlanan nesne görüntülerde doğrulanamadı."
+        reason = ("VLM: aranan renk/nesne bileşimi görüntülerde doğrulanamadı."
+                  if ask_color else "VLM: tanımlanan nesne görüntülerde doğrulanamadı.")
+        return [], filtered, reason
 
     if survivors:
         scores = [h["score"] for h in survivors]
@@ -172,7 +182,7 @@ def _fuse_verdicts(results: list[dict], visual_text: str) -> tuple[list[dict], l
                 bonus = settings.vlm_beta * v["confidence"] * signal
             h["_vrank"] = (h["score"] - mean) / std + bonus
         survivors.sort(key=lambda x: -x["_vrank"])
-    return survivors + tail, filtered, None
+    return survivors, filtered, None  # yalnız doğrulanmış survivor'lar (kuyruk sızıntısı yok)
 
 
 def _apply_vlm(results: list[dict], visual_text: str) -> tuple[list[dict], list[dict], str | None]:

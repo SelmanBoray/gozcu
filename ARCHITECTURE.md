@@ -207,11 +207,16 @@ Eval'in CLIP ile kapatılamayan açıkları: negasyon örtüşmesi (köpek/yağm
   kırmızı değil) ve kırmızı giyen kişi hiç öne çıkmaz.
 - **Verdict:** `{object_present, color_match, confidence}`; `confidence` = 1.0 (nesne var) /
   0.0 (yok) — ayrım booleanlarda. VLM hatası → None (dokunma).
-- **Füzyon (VLM CLIP'i ezmez, düzeltir):** **nesne yokluğu her iki modda düşürülür** —
-  yes/no ile nesne-varlığı güvenilir → `confidence<vlm_drop_below` (nesne yok) elenir
-  (ör. "kırmızı kıyafetli adam"→kırmızı arabalar `present=False`→düşer). Renk yalnız rerank
-  sinyali `z(cos)+β·conf·[color_match]` (düşürmez). VLM hatası → dokunma. Hepsi düşerse →
-  bulunamadı. Ayarlar: `vlm_top_n`, `vlm_drop_below`, `vlm_beta`.
+- **Füzyon = FİLTRE (VLM CLIP'in yanlış adayını ANA IZGARADAN çıkarır):** eşleşmeyen aday
+  elenir (elenenler expander'ında görünür), hepsi elenirse → bulunamadı. Elenme koşulu:
+  **nesne yok** (`confidence<vlm_drop_below`, her iki modda) **VEYA renk uymadı**
+  (`color_match is False`, renk sorgusunda — qwen2.5vl renk ayrımı ölçülmüş güvenilir
+  red/blue 9/9↔0/9). Böylece "kırmızı kıyafetli adam" korpusta kırmızı giyen yoksa kırmızı
+  ARABA göstermez → bulunamadı; kırmızı arabalar expander'da. Kalan survivor'lar
+  `z(cos)+β·conf` ile rerank. **`vlm_top_n=default_top_k`** → gösterilen her aday doğrulanır
+  (kuyruk sızıntısı yok). VLM hatası (None) → dokunma. Ayarlar: `vlm_top_n`, `vlm_drop_below`,
+  `vlm_beta`. NOT: eski "renk güvenilmez→rerank-only, düşürme yok" tasarımı qwen3-vl JSON
+  rubber-stamp içindi; model+sözleşme değişince renk hard-filtreye terfi etti.
 - **Model tavanı (kabul):** küçük/bulanık kırpıkta varlık yes-bias'ı (insanda "köpek",
   arabada "adam" yanlış-pozitif). Sıkı prompt uzak-insanı da reddediyor → temiz çözüm yok,
   tavan kabul. Çok-nesneli sorgu (köpek gezdiren) kırpık kapsamıyla da sınırlı (köpek
