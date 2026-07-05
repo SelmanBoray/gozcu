@@ -20,8 +20,8 @@ import streamlit as st
 
 from gozcu.config import settings
 from gozcu.query import needs_vlm
+from gozcu.search import clear_stream_job, get_stream_job, start_stream_job, vlm_available
 from gozcu.search import search as run_search
-from gozcu.search import stream_verify, vlm_available
 
 st.set_page_config(page_title="Gözcü", page_icon="👁️", layout="wide")
 
@@ -199,23 +199,28 @@ if q:
     elif vkey in st.session_state:  # VLM daha önce koştu → önbellekten anında
         with slot.container():
             render_final(st.session_state[vkey])
-    else:  # ── PER-ITEM STREAMING (ilk kez) ──
-        topn = clip_outcome.results[: settings.vlm_top_n]
-        prog = st.progress(0.0, text=f"VLM 0/{len(topn)} doğrulanıyor…")
-
-        def paint(done: int) -> None:
+    else:  # ── STREAMING DECOUPLE: worker thread + st.fragment (ana thread bloke OLMAZ) ──
+        job = start_stream_job(vkey, clip_outcome)
+        n_total = len(clip_outcome.results[: settings.vlm_top_n])
+        if job is None:  # başlatılamadı (güvenlik) → CLIP-only
             with slot.container():
-                parse_info(clip_outcome, "⚡ hızlı CLIP · VLM canlı doğruluyor…")
-                render_grid(clip_outcome.results, done=done, buttons=False)
+                render_outcome(clip_outcome, "")
+        else:
+            _, _done0, _ = job.progress()
+            run_every = None if _done0 else "0.5s"  # bitmişse yoklama yok
 
-        paint(0)  # hepsi ⏳
+            # Fragment KENDİ alanına render eder (dış container'a yazamaz); bitince
+            # st.rerun → ana script cached dalına düşer (temiz final, polling durur).
+            @st.fragment(run_every=run_every)
+            def stream_fragment():
+                done_n, done, result = job.progress()
+                if done and result is not None:
+                    st.session_state[vkey] = result
+                    clear_stream_job(vkey)
+                    st.rerun()  # tam rerun → 'vkey in session_state' dalı → render_final
+                else:
+                    parse_info(clip_outcome, "⚡ hızlı CLIP · VLM canlı doğruluyor…")
+                    render_grid(clip_outcome.results, done=done_n, buttons=False)
+                    st.caption(f"🔍 VLM {done_n}/{n_total} doğrulandı…")
 
-        def on_verdict(i: int, hit: dict) -> None:
-            paint(i + 1)  # i. kartın rozeti dolar
-            prog.progress((i + 1) / len(topn), text=f"VLM {i + 1}/{len(topn)} doğrulandı")
-
-        refined = stream_verify(clip_outcome, on_verdict)
-        st.session_state[vkey] = refined
-        prog.empty()
-        with slot.container():  # final reflow: yeniden sıralama + elenenler + Oynat
-            render_final(refined)
+            stream_fragment()

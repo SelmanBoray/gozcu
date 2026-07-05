@@ -266,3 +266,14 @@ DEĞİL, **progressive render** (tek-kullanıcı demo için thread kırılganlı
 - Prompt sıkılaştırıldı: "açıklamanın HER parçası görünmeli" → negasyon kısmi-eşleşme
   false-accept'i düzeldi (köpek/yağmur → BULUNAMADI, öznitelik bozulmadan).
 - Paralel VLM YOK (Ollama tek model, KV slot şişmesi → OOM riski). Sıralı + streaming.
+- **Streaming DECOUPLE (5 Tmz — freeze çözüldü):** senkron `stream_verify` ~40s ana thread'i
+  bloke edip tarayıcıyı donduruyordu. Çözüm: **worker thread** `hit['_vlm']`'i doldurur
+  (`st.*` YOK → ScriptRunContext gerekmez; verdict'ler module-level `StreamJob` + `Lock`'ta,
+  session_state DEĞİL), viewer **`st.fragment(run_every='0.5s')`** job'ı poller ve ızgarayı
+  çizer; `done` olunca `st.rerun` ile cached dala düşer (fragment yeniden tanımlanmaz → polling
+  durur). Fragment KENDİ alanına render eder (dış container'a yazamaz). Ana thread hiç bloke
+  olmaz → tarayıcı donmaz (tarayıcıyla doğrulandı: verification boyunca yanıt veriyor).
+- **Kart görseli = tam-kare + çizili bbox** (`viewer._card_image` + `recrop.draw_bbox`): eşleşen
+  özne kırmızı kutuyla işaretli (hangi araç/kişi eşleşti — minik kırpık yerine bağlamlı).
+- **Latency — YOLO-presence-skip:** renk sorgusunda aday kırpığın YOLO sınıfı hedefle
+  eşleşiyorsa (araba=car) presence VLM çağrısı atlanır (YOLO presence oracle'ı) → çağrılar ~yarı.

@@ -4,6 +4,7 @@ Embedder ve FrameStore tembel tekil (lazy singleton) olarak yüklenir:
 model ~2 GB olduğundan yalnızca ilk aramada belleğe alınır.
 """
 
+import threading
 import time
 from dataclasses import dataclass, field
 
@@ -227,13 +228,74 @@ def _build_verified_outcome(outcome: SearchOutcome, text: str) -> SearchOutcome:
 
 
 def stream_verify(outcome: SearchOutcome, on_verdict=None) -> SearchOutcome:
-    """Per-item streaming rafine: her verdict sonrası `on_verdict(i, hit)` (viewer canlı rozet),
-    sonra füzyon → rafine SearchOutcome. needs_vlm/VLM-hazır değilse aynen döner."""
+    """Per-item streaming rafine (SENKRON — CLI/test). Viewer artık start_stream_job kullanır
+    (worker thread, ana thread bloke olmaz). needs_vlm/VLM-hazır değilse aynen döner."""
     text = outcome.parsed.visual_text or ""
     if not outcome.results or not needs_vlm(text) or not _vlm_ready():
         return outcome
     verify_top_n(outcome.results, text, on_verdict)
     return _build_verified_outcome(outcome, text)
+
+
+# ── Streaming DECOUPLE: worker thread doğrular, ana (Streamlit) thread bloke OLMAZ ──
+# Sorun: senkron stream_verify ~40s ana thread'i bloke edip tarayıcıyı donduruyordu.
+# Çözüm (AI Engineer): worker thread hit['_vlm']'i doldurur (st.* YOK → context sorunu yok),
+# viewer st.fragment(run_every) ile job'ı poller. Verdict'ler module-level store'da (Lock'lu).
+_stream_jobs: dict = {}
+_stream_reg_lock = threading.Lock()
+
+
+class StreamJob:
+    """Arka plan VLM doğrulama işi. Worker hit['_vlm']'e yazar (GIL-atomik); fragment poller."""
+
+    def __init__(self, outcome: SearchOutcome) -> None:
+        self.outcome = outcome
+        self.lock = threading.Lock()
+        self.done = False
+        self.result: SearchOutcome | None = None
+
+    def progress(self) -> tuple[int, bool, SearchOutcome | None]:
+        """(doğrulanan_sayısı, bitti_mi, füzyonlanmış_sonuç|None). Reader kilit altında kopya."""
+        head = self.outcome.results[: settings.vlm_top_n]
+        n = sum(1 for h in head if "_vlm" in h)
+        with self.lock:
+            return n, self.done, self.result
+
+
+def start_stream_job(job_id: str, outcome: SearchOutcome) -> StreamJob | None:
+    """VLM worker thread'ini bir kez başlat. needs_vlm/VLM-hazır değilse None (viewer CLIP-only)."""
+    text = outcome.parsed.visual_text or ""
+    if not outcome.results or not needs_vlm(text) or not _vlm_ready():
+        return None
+    with _stream_reg_lock:
+        existing = _stream_jobs.get(job_id)
+        if existing is not None:
+            return existing
+        job = StreamJob(outcome)
+        _stream_jobs[job_id] = job
+
+    def _worker() -> None:
+        from gozcu.verifier import verify_hit
+        obj_en, color_en = extract_vqa_targets(text)
+        for h in outcome.results[: settings.vlm_top_n]:
+            h["_vlm"] = verify_hit(h, obj_en, color_en)  # GIL-atomik atama
+        fused = _build_verified_outcome(outcome, text)
+        with job.lock:
+            job.result = fused
+            job.done = True
+
+    threading.Thread(target=_worker, daemon=True).start()
+    return job
+
+
+def get_stream_job(job_id: str) -> StreamJob | None:
+    with _stream_reg_lock:
+        return _stream_jobs.get(job_id)
+
+
+def clear_stream_job(job_id: str) -> None:
+    with _stream_reg_lock:
+        _stream_jobs.pop(job_id, None)
 
 
 def refine_vlm(outcome: SearchOutcome) -> SearchOutcome:

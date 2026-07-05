@@ -1,5 +1,25 @@
 # PROGRESS.md — Gözcü Proje Günlüğü
 
+## 5 Temmuz 2026 (gece-6) — Otonom loop: streaming decouple (freeze çözüldü) + YOLO-skip latency
+
+- Selman "tüm önerileri uygula → düşün → devam et, loop'ta çalış" dedi. AI Engineer'a
+  streaming deseni + sonraki-round refleksiyonu danışıldı. Kritik meta: **loop'un objektif
+  bir eval skoruna ihtiyacı var** (yoksa his'le sürüklenir) → eval sıradaki #1.
+- **Streaming render-block ÇÖZÜLDÜ (freeze gitti):** senkron `stream_verify` ~40s ana thread'i
+  bloke edip tarayıcıyı donduruyordu. Çözüm (AI Engineer deseni): **worker thread** hit['_vlm']'i
+  doldurur (st.* YOK → context sorunu yok, module-level store + Lock), viewer **`st.fragment(
+  run_every='0.5s')`** ile poller; bitince `st.rerun` → cached dal (polling durur). `search.py`:
+  `StreamJob`/`start_stream_job`/`get_stream_job`/`clear_stream_job`. **TARAYICIYLA DOĞRULANDI:**
+  "kırmızı araba" → verification boyunca tarayıcı YANIT VERDİ (screenshot donmadı), kartlar canlı
+  doldu, temiz final (Oynat). Fragment dış-container'a yazamaz hatası düzeltildi (kendi alanına render).
+- **Latency: renk sorgusunda YOLO-presence-skip** (AI Engineer #4): aday kırpığın YOLO sınıfı
+  hedefle eşleşiyorsa (araba=car) presence VLM çağrısı atlanır → renk 2-sorgu 99→77s. Bonus:
+  siyah SUV 7→8 (bir presence false-negative de düzeldi).
+- **Town Centre elendi:** artık yalnız torrent/Kaggle (erişilemez) + gizlilik nedeniyle kaldırılmış
+  (KVKK ürünü için ironik). Korpus → Selman'ın kendi klipleri (bekliyor).
+- **Sıradaki round (AI Engineer refleksiyonu):** 1) eval harness (metrik — pazarlık dışı),
+  2) sorgu-ayrıştırıcı→LLM, 5) hard-negatif+kalibrasyon, 3) zaman-aralığı grounding, 4) adaptif top_n.
+
 ## 5 Temmuz 2026 (gece-5) — UX cilası: bbox-vurgulu kart görseli (3/4, kısmi)
 
 - **Kart görseli artık bbox-vurgulu:** kırpık aday için tam-kare thumb üzerine eşleşen özneyi
