@@ -29,6 +29,16 @@ _UNCOUNTABLE = {"rain", "snow", "traffic", "fog", "smoke"}
 # değil) → "Is the man wearing red?" DOĞRU. Araçta renk gövdedir (araba kırmızıdır).
 _PERSON_OBJECTS = {"person", "man", "woman", "child", "pedestrian", "driver", "baby"}
 
+# ── İngilizce nesne → YOLO sınıfı (Türkçe). Renk sorgusunda aday kırpığın YOLO sınıfı
+# hedefle eşleşiyorsa presence ZATEN kesin (YOLO tespit etti) → presence VLM çağrısını atla,
+# yalnız renk sorulur → renk sorgusu çağrılarını YARIYA indirir (latency). AI Engineer #4.
+_OBJ_YOLO: dict[str, str] = {
+    "person": "insan", "man": "insan", "woman": "insan", "child": "insan",
+    "pedestrian": "insan", "driver": "insan", "baby": "insan",
+    "car": "araba", "SUV": "araba", "truck": "kamyon", "pickup truck": "kamyon",
+    "bus": "otobüs", "minibus": "otobüs", "motorcycle": "motosiklet", "bicycle": "bisiklet",
+}
+
 
 def _encode(img) -> str:
     buf = io.BytesIO()
@@ -110,7 +120,10 @@ def verify_hit(hit: dict, obj_en: str | None, color_en: str | None) -> dict | No
         return None
 
     if color_en:
-        present = _yesno(img_b64, _crop_presence_q(obj))
+        # YOLO zaten bu sınıfı tespit ettiyse presence kesin → VLM presence çağrısını atla
+        yolo_confirmed = (hit.get("source") == "crop"
+                          and _OBJ_YOLO.get(obj) == hit.get("yolo_class"))
+        present = True if yolo_confirmed else _yesno(img_b64, _crop_presence_q(obj))
         if present is None:
             return None
         color_match = _yesno(img_b64, _color_q(obj, color_en, obj in _PERSON_OBJECTS)) \
