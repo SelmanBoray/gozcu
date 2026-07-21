@@ -1,0 +1,83 @@
+{
+  "corpus_version": "C1",
+  "total_vectors": 4395,
+  "n_videos": 13,
+  "by_source": {
+    "crop": 3560,
+    "frame": 835
+  },
+  "videos": {
+    "VIRAT_kampus": {
+      "total": 71,
+      "frame": 31,
+      "crop": 40
+    },
+    "VIRAT_otopark": {
+      "total": 308,
+      "frame": 59,
+      "crop": 249
+    },
+    "meva_hastane1": {
+      "total": 58,
+      "frame": 17,
+      "crop": 41
+    },
+    "meva_hastane2": {
+      "total": 170,
+      "frame": 114,
+      "crop": 56
+    },
+    "meva_idari": {
+      "total": 1,
+      "frame": 1,
+      "crop": 0
+    },
+    "meva_okul1": {
+      "total": 63,
+      "frame": 50,
+      "crop": 13
+    },
+    "meva_okul2": {
+      "total": 13,
+      "frame": 3,
+      "crop": 10
+    },
+    "meva_otobus": {
+      "total": 10,
+      "frame": 3,
+      "crop": 7
+    },
+    "ucf_gece": {
+      "total": 270,
+      "frame": 236,
+      "crop": 34
+    },
+    "ucf_trafik": {
+      "total": 3279,
+      "frame": 279,
+      "crop": 3000
+    },
+    "video_1": {
+      "total": 50,
+      "frame": 15,
+      "crop": 35
+    },
+    "video_2": {
+      "total": 53,
+      "frame": 15,
+      "crop": 38
+    },
+    "video_3": {
+      "total": 49,
+      "frame": 12,
+      "crop": 37
+    }
+  },
+  "yolo_classes": [
+    "araba",
+    "insan",
+    "kamyon",
+    "motosiklet",
+    "otobüs"
+  ]
+}
