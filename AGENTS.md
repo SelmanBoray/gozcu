@@ -33,3 +33,10 @@ Retrieval kalitesi `eval/queries.yaml` (dondurulmuş, pre-registration) üzerind
 `eval/run_eval.py` ile ölçülür. Metodoloji: ARCHITECTURE.md §6b. Kurallar: sorgu
 seti sonuca bakmadan dondurulur; golden frame_idx'ler küçük resim gözle doğrulanır;
 her model/eşik değişikliği bu sabit sette eşleştirilmiş (McNemar) karşılaştırılır.
+
+**Faz 2 objektif skor:** uçtan uca VLM pipeline'ı `eval/faz2_eval.py` + `queries_faz2.yaml`
+ile ölçülür (loop'un his yerine güvendiği metrik). İki ortogonal eksen: **outcome**
+(not_found/has_results) ve **ayrım** (`forbid: vehicles` → yasaklı YOLO sınıfı sonuçlara
+sızarsa FAIL; kişi-renk sorgusunun araç getirmesini kilitler). `forbid` sembolik tutulur —
+depodaki `yolo_class` **Türkçe**, İngilizce liste yazma (sahte-PASS). Güncel skor **11/12**;
+detay ARCHITECTURE.md §6c. Çalıştırma: `.venv/Scripts/python.exe eval/faz2_eval.py` (Ollama gerekir).

@@ -80,8 +80,13 @@ class Settings(BaseSettings):
     vlm_url: str = "http://localhost:11434/api/chat"
     vlm_keep_alive: str = "30m"           # her sorgu arası model boşaltma (swap thrash) önle
     vlm_top_n: int = 12                   # doğrulanan aday sayısı = default_top_k (kuyruk sızıntısı yok)
-    vlm_drop_below: float = 0.3           # negasyon: eşleşme-güveni bu altındaysa düşür (absent)
-    vlm_beta: float = 0.5                 # öznitelik rerank ağırlığı (skor-boşluğundan kalibre)
+    vlm_drop_below: float = 0.3           # negasyon absent-kapısı: confidence < eşik → düşür.
+    # NOT: verifier confidence şu an BINARY {0.0, 1.0} → (0,1) aralığındaki her eşik özdeş davranır
+    # (bu değer bir NO-OP). Kalibrasyon anlamsız; ancak sürekli-confidence (multi-frame consensus /
+    # token logprob) eklenirse anlam kazanır — o bir feature, kalibrasyon değil. AI Engineer teşhisi.
+    vlm_beta: float = 0.5                 # öznitelik rerank ağırlığı: renk survivor'ları zaten hepsi
+    # present+color_match=True → sabit ofset, sıralamaya etkisiz; yalnız color_match=None error-path'te
+    # tie-break. 0.3-1.0 arası herhangi bir değer aynı kalite (kalibrasyona değmez).
     vlm_timeout_s: float = 30.0           # atomik yes/no ~0.3-2s (warm); 30s yalnız emniyet (cold/hang)
     # Doğrulama görüntüsü HİBRİT (ölçümle): renk/öznitelik → tight-kırpık (özne kadrajı
     # doldurur); ZOR-KAVRAM (köpek/yağmur) → kutusuz sınırlandırılmış tam-kare (nesne kırpık

@@ -1,5 +1,24 @@
 # PROGRESS.md — Vel'Koz Proje Günlüğü
 
+## 21 Temmuz 2026 — Hard-negative eval kapsamı + ayrım ekseni (AI Engineer #5)
+
+- Loop devam: en kırılgan düzeltmemizin (**"kırmızı kıyafetli adam" araba getiriyordu**)
+  eval'de HİÇ regresyon koruması yoktu. Eval sadece not_found/has_results ölçüyordu →
+  "sonuç doğru sınıfta mı" kör noktası. AI Engineer tasarımıyla **ortogonal ayrım ekseni** eklendi.
+- **`queries_faz2.yaml`:** 2 hard-negative (`hn_kirmizi_kiyafet`, `hn_siyah_kiyafet`), şema
+  `expect: any` + **`forbid: vehicles`** (sembolik → `VEHICLE_CLASSES`). Kritik: depodaki
+  `yolo_class` Türkçe (araba/kamyon) — İngilizce liste yazılsa test sahte-PASS ederdi (AI Eng. yakaladı).
+- **`faz2_eval.py`:** ikinci eksen — yasaklı sınıf sonuçlara sızarsa FAIL; outcome eksenine
+  DOKUNMAZ → **9/10 baseline aynen korunur** (forbid'siz girdiler eski gibi ölçülür). Vacuous-pass
+  dürüstlüğü: sızan (sonuç) vs elenen (`vlm_filtered`) karşılaştırılıp ⚠ ile işaretlenir.
+- **Ölçüldü — 11/12 (%92), ayrım 2/2:** `hn_kirmizi_kiyafet` **non-vacuous kanıt** — CLIP tam
+  eski bug'daki gibi **6 kırmızı araba adayı** çıkardı, VLM **6'sını da eledi, 0 sızdı**. Düzeltme
+  artık gerçek testle kilitli. `hn_siyah_kiyafet` vacuous (kişi sorgusu siyah aracı aday yapmadı)
+  → latent canary. `mavi kamyonet` hâlâ dokümante tavan FAIL (skoru şişirmiyoruz).
+- **Eşik kalibrasyonu bilinçli YAPILMADI:** confidence binary {0,1} → `vlm_drop_below` no-op,
+  `vlm_beta` sabit ofset. Kalibrasyon sürekli-confidence ister (feature, kapsam dışı). `config.py`
+  yorumu dürüstleştirildi. Detay: ARCHITECTURE §6c · `experiments/2026-07-21_hard_negatif_eval/`.
+
 ## 6 Temmuz 2026 — Hibrit LLM sorgu-ayrıştırıcı (AI Engineer #2)
 
 - Türkçe NL → yapısal niyet. AI Engineer: hibrit — kurallar önce (deterministik, baseline

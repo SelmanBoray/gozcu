@@ -2,9 +2,13 @@
 # Pre-registration: sorgular + beklentiler sonuca bakmadan/gözle-doğrulanmış ground-truth'la yazıldı.
 #
 # expect: pipeline'ın DOĞRU çıktısı (objektif skor için)
-#   not_found  — konsept korpusta yok → bulunamadı/0 sonuç dönmeli
+#   not_found   — konsept korpusta yok → bulunamadı/0 sonuç dönmeli
 #   has_results — geçerli eşleşme var → ≥1 sonuç dönmeli
-# Kovalar: negation (VLM reddetmeli), attribute (renk), positive_ctrl (yanlış-reddetme yok)
+#   any         — outcome iddia EDİLMEZ (korpus içeriği belirsiz); yalnız `forbid` ekseni ölçülür
+# forbid: sonuçlara SIZMAMASI gereken YOLO sınıfları (ayrım ekseni — outcome'dan ortogonal)
+#   vehicles    — sembolik → gozcu.query.VEHICLE_CLASSES. Depodaki yolo_class TÜRKÇE (araba/kamyon/
+#                 otobüs); İngilizce liste yazma → kontrol sessizce boşa geçer (AI Engineer uyarısı).
+# Kovalar: negation, attribute (renk), positive_ctrl, hard_negative (renk kıyafete mi araca mı)
 
 # ═══ NEGASYON (konsept korpusta yok → bulunamadı beklenir) ═══
 - id: f2_neg_kopek
@@ -55,3 +59,20 @@
   query: "kamyon"
   bucket: positive_ctrl
   expect: has_results          # kamyon var
+
+# ═══ HARD-NEGATIVE (ayrım — renk KIYAFETE ait, araca sızmamalı) ═══
+# Bu oturumun asıl bug'ının regresyon koruması: "kırmızı kıyafetli adam" KIRMIZI ARABA getiriyordu.
+# Düzeltme (verifier: kişi→"is wearing X clothing"; füzyon: color_match=False araç elenir) burada
+# kilitlenir — ileride bir prompt tweak'i bunu bozarsa bu sorgular yakalar.
+# expect: any → korpusta kırmızı/siyah-kıyafetli insan GARANTİ değil; outcome iddia edilmez.
+# forbid: vehicles → ne dönerse dönsün araç sınıfı (araba/kamyon/otobüs…) sonuçlara SIZMAMALI.
+- id: hn_kirmizi_kiyafet
+  query: "kırmızı kıyafetli adam"
+  bucket: hard_negative
+  expect: any
+  forbid: vehicles             # kırmızı araba sızmamalı — bug'ın birebir tekrarı
+- id: hn_siyah_kiyafet
+  query: "siyah kıyafetli kişi"
+  bucket: hard_negative
+  expect: any
+  forbid: vehicles             # siyah SUV korpusta KESİN var → sızma cazibesi gerçek (daha zorlu test)

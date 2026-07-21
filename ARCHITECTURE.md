@@ -150,6 +150,35 @@ Kurallar: set sonuca bakmadan **dondurulur** (pre-registration); her agregata **
 %95 CI** basılır (n≈12 → gösterge, benchmark değil); değişiklikler sabit sette
 **eşleştirilmiş (McNemar)** karşılaştırılır, bağımsız oran değil.
 
+### 6c. Faz 2 objektif eval + hard-negative ayrım ekseni (21 Temmuz 2026)
+
+`eval/faz2_eval.py` uçtan uca (CLIP+VLM) pipeline'ı `queries_faz2.yaml`'daki beklentiyle
+eşleştirir — loop'un his yerine ölçtüğü **objektif skor**. İki **ortogonal** eksen:
+
+- **Eksen 1 — outcome:** `not_found` / `has_results` (mevcut). `expect` ile eşleşme.
+- **Eksen 2 — ayrım (`forbid`):** yasaklı YOLO sınıfı sonuçlara **sızarsa** FAIL. Outcome'dan
+  bağımsız; `expect: any` (outcome iddia edilmez) sorgularda tek karar budur.
+
+**Neden ayrı eksen:** not_found/has_results ikilisi "sonuç DOĞRU sınıfta mı"yı yakalayamaz —
+"kırmızı kıyafetli adam" 5 sonuç dönse ama 3'ü kırmızı ARABA olsa yine "has_results = PASS"
+derdi. Bu oturumun bug'ı (kişi-renk sorgusu araç getiriyordu) tam bu kör noktadaydı.
+
+**`forbid: vehicles` sembolik** → `gozcu.query.VEHICLE_CLASSES`. Depodaki `yolo_class`
+**Türkçe** (araba/kamyon/otobüs); İngilizce liste elle yazılırsa hiç eşleşmez → test
+sessizce sahte-PASS eder. Sembolik değer bu tuzağı yapısal olarak kapatır.
+
+**Vacuous-pass dürüstlüğü:** forbid *gerek-ama-yeter-değil* koruma — yasaklı aday hiç
+gelmezse boşa geçer. Eval bunu ⚠ ile işaretler (SONUÇ'ta sızan + `vlm_filtered`'da elenen
+sayısını karşılaştırır). İlk koşu (21 Tmz, `experiments/2026-07-21_hard_negatif_eval/`):
+`hn_kirmizi_kiyafet` **non-vacuous** — CLIP 6 kırmızı araba adayı çıkardı, VLM 6'sını da eledi,
+0 sızdı (düzeltmenin gerçek kanıtı). `hn_siyah_kiyafet` vacuous (kişi sorgusu siyah aracı aday
+yapmadı) → latent canary. **Skor 11/12** (baseline 9/10 aynen korundu; `forbid`'siz girdiler
+Eksen 2'yi atlar — geriye tam uyumlu).
+
+**Eşik kalibrasyonu bilinçli YAPILMADI:** verifier `confidence` binary {0.0, 1.0} → `vlm_drop_below`
+(0,1) aralığında no-op; `vlm_beta` renk survivor'larına sabit ofset (sıralamaya etkisiz).
+Kalibrasyon anlamlı olması için sürekli-confidence gerekir (feature, kalibrasyon değil — kapsam dışı).
+
 ## 7. Niyet-koşullu sıralama (Olgu B çözümü — 4 Temmuz 2026)
 
 Korpus büyütme v2'nin bulduğu Olgu B: sahne sorgusu bir NESNE KELİMESİ içerince
